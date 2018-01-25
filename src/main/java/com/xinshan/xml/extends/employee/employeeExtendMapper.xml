@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.employee.EmployeeExtendMapper" >
+    <insert id="createEmployee" parameterType="com.xinshan.model.Employee" useGeneratedKeys="true" keyProperty="user_id">
+        insert into employee (employee_id, employee_code, employee_password,
+          employee_name, phone_number, employee_status,
+          position_id, handover_employee_code, role_ids
+          )
+        values (#{employee_id,jdbcType=INTEGER}, #{employee_code,jdbcType=VARCHAR}, #{employee_password,jdbcType=VARCHAR},
+          #{employee_name,jdbcType=VARCHAR}, #{phone_number,jdbcType=VARCHAR}, #{employee_status,jdbcType=INTEGER},
+          #{position_id,jdbcType=INTEGER}, #{handover_employee_code,jdbcType=VARCHAR}, #{role_ids,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <resultMap id="employeeResultMap" type="com.xinshan.model.extend.employee.EmployeeExtend"
+               extends="com.xinshan.dao.EmployeeMapper.BaseResultMap">
+        <association property="position" javaType="com.xinshan.model.Position"
+                     resultMap="com.xinshan.dao.PositionMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="employeeList" parameterType="com.xinshan.pojo.employee.EmployeeSearchOption" resultMap="employeeResultMap">
+        select * from employee
+        left join position on employee.position_id = position.position_id
+        where 1=1
+        <if test="employee_code != null">
+            and employee.employee_code=#{employee_code}
+        </if>
+        <if test="param != null">
+            and (employee.employee_code like concat('%', #{param} , '%')
+            or employee_name like concat('%', #{param} , '%')
+            or phone_number like concat('%', #{param} , '%'))
+        </if>
+        <if test="role_id != null">
+            and find_in_set(#{role_id}, employee.role_ids)
+        </if>
+        <if test="position_id != null">
+            AND employee.position_id = #{position_id}
+        </if>
+        <if test="positionIds != null">
+            and find_in_set(employee.position_id, #{positionIds})
+        </if>
+        <if test="handover_employee_code != null">
+            and employee.handover_employee_code = #{handover_employee_code}
+        </if>
+        <if test="employee_status != null">
+            and employee.employee_status = #{employee_status}
+        </if>
+        ORDER BY employee.employee_id desc
+        <if test="limit!=null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    
+    <select id="countEmployee" parameterType="com.xinshan.pojo.employee.EmployeeSearchOption" resultType="java.lang.Integer">
+        select count(*) from employee
+        left join position on employee.position_id = position.position_id
+        where 1=1
+        <if test="employee_code != null">
+            and employee.employee_code=#{employee_code}
+        </if>
+        <if test="param != null">
+            and (employee.employee_code like concat('%', #{param} , '%')
+            or employee_name like concat('%', #{param} , '%')
+            or phone_number like concat('%', #{param} , '%'))
+        </if>
+        <if test="role_id != null">
+            and find_in_set(#{role_id}, employee.role_ids)
+        </if>
+        <if test="position_id != null">
+            AND employee.position_id = #{position_id}
+        </if>
+        <if test="positionIds != null">
+            and find_in_set(employee.position_id, #{positionIds})
+        </if>
+        <if test="handover_employee_code != null">
+            and employee.handover_employee_code = #{handover_employee_code}
+        </if>
+        <if test="employee_status != null">
+            and employee.employee_status = #{employee_status}
+        </if>
+    </select>
+
+    <update id="updateEmployee" parameterType="com.xinshan.model.Employee">
+        update employee
+        set employee_code = #{employee_code,jdbcType=VARCHAR},
+          employee_password = #{employee_password,jdbcType=VARCHAR},
+          employee_name = #{employee_name,jdbcType=VARCHAR},
+          phone_number = #{phone_number,jdbcType=VARCHAR},
+          employee_status = #{employee_status,jdbcType=INTEGER},
+          position_id = #{position_id,jdbcType=INTEGER},
+          handover_employee_code = #{handover_employee_code,jdbcType=VARCHAR},
+          role_ids = #{role_ids,jdbcType=LONGVARCHAR}
+        where employee_id = #{employee_id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateEmployeePassword" parameterType="com.xinshan.model.Employee">
+        update employee
+        set employee_password = #{employee_password,jdbcType=VARCHAR}
+        where employee_code = #{employee_code,jdbcType=INTEGER}
+    </update>
+
+    <select id="getEmployeeByCode" parameterType="java.lang.String" resultType="com.xinshan.model.Employee">
+        select * from employee where employee_code = #{employee_code}
+    </select>
+</mapper>

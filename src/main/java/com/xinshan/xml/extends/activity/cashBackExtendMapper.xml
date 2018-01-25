@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.activity.CashBackExtendMapper" >
+
+    <insert id="createCashBack" parameterType="com.xinshan.model.CashBack" useGeneratedKeys="true" keyProperty="cash_back_id">
+        insert into cash_back (cash_back_id, order_id, cash_back_create_date,
+          cash_back_employee_code, cash_back_employee_name,
+          cash_back_amount, cash_back_real_amount,
+          activity_id, cash_back_date, cash_back_type,
+          order_return_id, cash_back_remark)
+        values (#{cash_back_id,jdbcType=INTEGER}, #{order_id,jdbcType=INTEGER}, #{cash_back_create_date,jdbcType=TIMESTAMP},
+          #{cash_back_employee_code,jdbcType=VARCHAR}, #{cash_back_employee_name,jdbcType=VARCHAR},
+          #{cash_back_amount,jdbcType=DECIMAL}, #{cash_back_real_amount,jdbcType=DECIMAL},
+          #{activity_id,jdbcType=INTEGER}, #{cash_back_date,jdbcType=TIMESTAMP}, #{cash_back_type,jdbcType=INTEGER},
+          #{order_return_id,jdbcType=INTEGER}, #{cash_back_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createCashBackCommodity" parameterType="com.xinshan.model.CashBackCommodity" useGeneratedKeys="true" keyProperty="cash_back_commodity_id">
+        insert into cash_back_commodity (cash_back_commodity_id, cash_back_id,
+          order_commodity_id, commodity_id, cash_back_commodity_amount,
+          order_return_commodity_id)
+        values (#{cash_back_commodity_id,jdbcType=INTEGER}, #{cash_back_id,jdbcType=INTEGER},
+          #{order_commodity_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER}, #{cash_back_commodity_amount,jdbcType=DECIMAL},
+          #{order_return_commodity_id,jdbcType=INTEGER})
+    </insert>
+
+    <select id="countCashBack" parameterType="com.xinshan.pojo.activity.CashBackSearchOption"
+            resultType="java.lang.Integer">
+        select count(DISTINCT cash_back.cash_back_id) from cash_back
+        left join cash_back_commodity on cash_back.cash_back_id = cash_back_commodity.cash_back_id
+        left join `order` on `order`.order_id = cash_back.order_id
+        left join activity on activity.activity_id = cash_back.activity_id
+        where 1=1
+        <include refid="cashBackIdsQuery"/>
+    </select>
+    <select id="cashBackIds" parameterType="com.xinshan.pojo.activity.CashBackSearchOption"
+            resultType="java.lang.Integer">
+        select DISTINCT cash_back.cash_back_id from cash_back
+        left join cash_back_commodity on cash_back.cash_back_id = cash_back_commodity.cash_back_id
+        left join `order` on `order`.order_id = cash_back.order_id
+        left join activity on activity.activity_id = cash_back.activity_id
+        where 1=1
+        <include refid="cashBackIdsQuery"/>
+        order by cash_back.cash_back_create_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="cashBackIdsQuery">
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%")
+        </if>
+        <if test="cash_back_id != null">
+            and cash_back.cash_back_id = #{cash_back_id}
+        </if>
+        <if test="activity_id != null">
+            and cash_back.activity_id = #{activity_id}
+        </if>
+        <if test="order_id != null">
+            and cash_back.order_id = #{order_id}
+        </if>
+        <if test="cash_back_type != null">
+            and cash_back.cash_back_type = #{cash_back_type}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (cash_back.cash_back_date &gt;= #{startDate} and cash_back.cash_back_date &lt; #{endDate})
+        </if>
+    </sql>
+    <resultMap id="cashBackResultMap" type="com.xinshan.model.extend.activity.CashBackExtend"
+               extends="com.xinshan.dao.CashBackMapper.BaseResultMap">
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <collection property="cashBackCommodityExtends" ofType="com.xinshan.model.extend.activity.CashBackCommodityExtend">
+            <id column="cash_back_commodity_id" property="cash_back_commodity_id" jdbcType="INTEGER" />
+            <result column="cash_back_id" property="cash_back_id" jdbcType="INTEGER" />
+            <result column="order_commodity_id" property="order_commodity_id" jdbcType="INTEGER" />
+            <result column="commodity_id" property="commodity_id" jdbcType="INTEGER" />
+            <result column="cash_back_commodity_amount" property="cash_back_commodity_amount" jdbcType="DECIMAL" />
+        </collection>
+    </resultMap>
+    <select id="cashBackList" parameterType="com.xinshan.pojo.activity.CashBackSearchOption"
+            resultMap="cashBackResultMap">
+        select cash_back.*,
+        cash_back_commodity.*
+        ,`order`.order_code,`order`.customer_name,`order`.customer_phone_number,`order`.record_date
+        ,activity.activity_name,activity.activity_start_date,activity.activity_end_date,activity.activity_type,activity.activity_status
+        from cash_back
+        left join cash_back_commodity on cash_back.cash_back_id = cash_back_commodity.cash_back_id
+        left join `order` on `order`.order_id = cash_back.order_id
+        left join activity on activity.activity_id = cash_back.activity_id
+        where 1=1
+        <if test="cashBackIds != null">
+            and cash_back.cash_back_id in
+            <foreach item="item" index="index" collection="cashBackIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by cash_back.cash_back_create_date desc
+    </select>
+
+    <select id="getCashBackCommodity" parameterType="java.lang.Integer" resultType="com.xinshan.model.CashBackCommodity">
+        select * from cash_back_commodity where order_commodity_id =#{order_commodity_id} and order_return_commodity_id is null limit 1
+    </select>
+
+    <select id="statistics" parameterType="com.xinshan.pojo.activity.CashBackSearchOption" resultType="java.util.Map">
+        select sum(cash_back.cash_back_amount) as cash_back_amount, sum(cash_back.cash_back_real_amount) as cash_back_real_amount
+        from cash_back
+        left join `order` on `order`.order_id = cash_back.order_id
+        where 1=1
+        <include refid="cashBackIdsQuery"/>
+    </select>
+</mapper>

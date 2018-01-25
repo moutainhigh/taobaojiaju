@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.statistics.SalesSupplierExtendMapper">
+
+    <insert id="createSalesSupplier" parameterType="com.xinshan.model.SalesSupplier" useGeneratedKeys="true" keyProperty="sales_supplier_id">
+        insert into sales_supplier (sales_supplier_id, supplier_id, contacts,
+          month, sales_amount, cost_amount,
+          sales_num, add_up_amount, add_up_cost_amount,
+          add_up_num, return_commodity_amount, return_commodity_cost,
+          return_commodity_num, return_add_commodity_amount,
+          return_add_commodity_cost, return_add_commodity_num,
+          order_commodity_amount, order_commodity_cost,
+          order_commodity_num)
+        values (#{sales_supplier_id,jdbcType=INTEGER}, #{supplier_id,jdbcType=INTEGER}, #{contacts,jdbcType=VARCHAR},
+          #{month,jdbcType=VARCHAR}, #{sales_amount,jdbcType=DECIMAL}, #{cost_amount,jdbcType=DECIMAL},
+          #{sales_num,jdbcType=INTEGER}, #{add_up_amount,jdbcType=DECIMAL}, #{add_up_cost_amount,jdbcType=DECIMAL},
+          #{add_up_num,jdbcType=INTEGER}, #{return_commodity_amount,jdbcType=DECIMAL}, #{return_commodity_cost,jdbcType=DECIMAL},
+          #{return_commodity_num,jdbcType=INTEGER}, #{return_add_commodity_amount,jdbcType=DECIMAL},
+          #{return_add_commodity_cost,jdbcType=DECIMAL}, #{return_add_commodity_num,jdbcType=INTEGER},
+          #{order_commodity_amount,jdbcType=DECIMAL}, #{order_commodity_cost,jdbcType=DECIMAL},
+          #{order_commodity_num,jdbcType=INTEGER})
+    </insert>
+    <insert id="createSalesContacts" parameterType="com.xinshan.model.SalesContacts" useGeneratedKeys="true" keyProperty="sales_contacts_id">
+        insert into sales_contacts (sales_contacts_id, contacts, month,
+          sales_amount, cost_amount, sales_num,
+          add_up_amount, add_up_cost_amount, add_up_num,
+          return_commodity_amount, return_commodity_cost,
+          return_commodity_num, return_add_commodity_amount,
+          return_add_commodity_cost, return_add_commodity_num,
+          order_commodity_amount, order_commodity_cost,
+          order_commodity_num)
+        values (#{sales_contacts_id,jdbcType=INTEGER}, #{contacts,jdbcType=VARCHAR}, #{month,jdbcType=VARCHAR},
+          #{sales_amount,jdbcType=DECIMAL}, #{cost_amount,jdbcType=DECIMAL}, #{sales_num,jdbcType=INTEGER},
+          #{add_up_amount,jdbcType=DECIMAL}, #{add_up_cost_amount,jdbcType=DECIMAL}, #{add_up_num,jdbcType=INTEGER},
+          #{return_commodity_amount,jdbcType=DECIMAL}, #{return_commodity_cost,jdbcType=DECIMAL},
+          #{return_commodity_num,jdbcType=INTEGER}, #{return_add_commodity_amount,jdbcType=DECIMAL},
+          #{return_add_commodity_cost,jdbcType=DECIMAL}, #{return_add_commodity_num,jdbcType=INTEGER},
+          #{order_commodity_amount,jdbcType=DECIMAL}, #{order_commodity_cost,jdbcType=DECIMAL},
+          #{order_commodity_num,jdbcType=INTEGER})
+    </insert>
+
+    <resultMap id="salesSupplierResultMap" type="com.xinshan.model.extend.statistics.SalesSupplierExtend"
+               extends="com.xinshan.dao.SalesSupplierMapper.BaseResultMap">
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="salesSupplierList" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption" resultMap="salesSupplierResultMap">
+        select sales_supplier.*,supplier.supplier_name
+        from sales_supplier
+        left join supplier on sales_supplier.supplier_id = supplier.supplier_id
+        where 1=1
+        <include refid="salesSupplierQuery"/>
+        order by sales_amount DESC
+        <if test="limit != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="salesSupplierQuery">
+        <if test="supplier_id != null">
+            and sales_supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="month != null">
+            and sales_supplier.month = #{month}
+        </if>
+        <if test="sales_amount != null">
+            and sales_supplier.sales_amount &gt; #{sales_amount}
+        </if>
+    </sql>
+    <select id="countSalesSupplier" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption" resultType="java.lang.Integer">
+        select count(*) from sales_supplier
+        where 1=1
+        <include refid="salesSupplierQuery"/>
+    </select>
+    <sql id="salesContactsQuery">
+        <if test="supplier_id != null">
+            and supplier_id = #{supplier_id}
+        </if>
+        <if test="contacts != null">
+            and contacts = #{contacts}
+        </if>
+        <if test="month != null">
+            and month = #{month}
+        </if>
+        <if test="sales_amount != null">
+            and sales_amount &gt; #{sales_amount}
+        </if>
+    </sql>
+    <select id="salesContactsList" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption" resultType="com.xinshan.model.SalesContacts">
+        select * from sales_contacts
+        where 1=1
+        <include refid="salesContactsQuery"/>
+        order by sales_amount DESC
+        <if test="limit != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countSalesContacts" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption" resultType="java.lang.Integer">
+        select count(*) from sales_contacts
+        where 1=1
+        <include refid="salesContactsQuery"/>
+    </select>
+
+    <select id="orderSales" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.util.Map">
+        select
+        sum(order_commodity.order_commodity_num) as salesNum,
+        sum((order_commodity.bargain_price + order_commodity.revision_fee)*order_commodity.order_commodity_num) as salesAmount,
+        sum(case when purchase_commodity.purchase_unit_cost_price is not null and purchase_commodity.purchase_unit_cost_price > 0 then purchase_commodity.purchase_unit_cost_price
+        else commodity.purchase_price end) as costAmount
+        FROM order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join `order` on order_commodity.order_id = `order`.order_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        where 1=1
+        <if test="order_commodity_type != null">
+            and order_commodity.order_commodity_type = #{order_commodity_type}
+        </if>
+        <if test="orderStatuses != null">
+            and find_in_set(`order`.order_status,#{orderStatuses})
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="contacts != null">
+            and supplier.contacts = #{contacts}
+        </if>
+    </select>
+    <select id="orderReturnSales" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.util.Map">
+        select
+        sum(order_return_commodity.order_return_commodity_num) as salesNum,
+        sum((order_return_commodity.bargain_price + order_return_commodity.revision_fee) * order_return_commodity.order_return_commodity_num) salesAmount,
+        sum(case when purchase_commodity.purchase_unit_cost_price is not null and purchase_commodity.purchase_unit_cost_price > 0 then purchase_commodity.purchase_unit_cost_price
+        else commodity.purchase_price end) as costAmount
+        from order_return_commodity
+        left join order_return on order_return.order_return_id = order_return_commodity.order_return_id
+        left join commodity on order_return_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join order_commodity on order_return_commodity.order_commodity_id = order_commodity.order_commodity_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        where 1=1
+        <if test="order_return_commodity_type != null">
+            and order_return_commodity.order_return_commodity_type = #{order_return_commodity_type}
+        </if>
+        <if test="order_return_check_status != null">
+            and find_in_set(order_return.order_return_check_status, #{order_return_check_status})
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= order_return.order_return_date and `order_return`.order_return_date &lt; #{endDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="contacts != null">
+            and supplier.contacts = #{contacts}
+        </if>
+    </select>
+    <select id="supplierAmount" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption" resultType="java.util.Map">
+        select
+        sum(sales_amount) as sales_amount,
+        sum(cost_amount) as cost_amount,
+        sum(sales_num) as sales_num
+        from sales_supplier
+        where 1=1
+        <if test="supplier_id != null">
+            AND supplier_id = #{supplier_id}
+        </if>
+        <if test="m != null">
+            and cast(right(`month`, 2) as signed) &lt;= #{m}
+        </if>
+        <if test="y != null">
+            and cast(left(`month`, 4) as signed) = #{y}
+        </if>
+        <if test="month != null">
+            and `month` = #{month}
+        </if>
+    </select>
+    <select id="contactsAmount" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption" resultType="java.util.Map">
+        select
+        sum(sales_amount) as sales_amount,
+        sum(cost_amount) as cost_amount,
+        sum(sales_num) as sales_num
+        from sales_contacts
+        where 1=1
+        <if test="contacts != null">
+            and contacts = #{contacts}
+        </if>
+        <if test="m != null">
+            and cast(right(`month`, 2) as signed) &lt;= #{m}
+        </if>
+        <if test="y != null">
+            and cast(left(`month`, 4) as signed) = #{y}
+        </if>
+        <if test="month != null">
+            and `month` = #{month}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.commodity.SampleInExtendMapper">
+
+    <insert id="createSampleIn" parameterType="com.xinshan.model.CommoditySampleIn" useGeneratedKeys="true" keyProperty="commodity_sample_in_id">
+        insert into commodity_sample_in (commodity_sample_in_id, sample_in_code,
+          sample_in_create_date, sample_in_employee_code,
+          sample_in_employee_name, sample_in_date,
+          sample_in_supplier_id, commodity_store_id,
+          sample_in_confirm_status, inventory_in_id,
+          sample_in_remark)
+        values (#{commodity_sample_in_id,jdbcType=INTEGER}, #{sample_in_code,jdbcType=VARCHAR},
+          #{sample_in_create_date,jdbcType=TIMESTAMP}, #{sample_in_employee_code,jdbcType=VARCHAR},
+          #{sample_in_employee_name,jdbcType=VARCHAR}, #{sample_in_date,jdbcType=TIMESTAMP},
+          #{sample_in_supplier_id,jdbcType=INTEGER}, #{commodity_store_id,jdbcType=INTEGER},
+          #{sample_in_confirm_status,jdbcType=INTEGER}, #{inventory_in_id,jdbcType=INTEGER},
+          #{sample_in_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createSampleInDetail" parameterType="com.xinshan.model.CommoditySampleInDetail" useGeneratedKeys="true" keyProperty="commodity_sample_in_detail_id">
+        insert into commodity_sample_in_detail (commodity_sample_in_detail_id, commodity_sample_in_id,
+          commodity_id, sample_in_detail_sample,
+          commodity_sample_in_num, sample_in_detail_confirm_status,
+          inventory_in_commodity_id, sample_in_freight,
+          sample_in_detail_remark)
+        values (#{commodity_sample_in_detail_id,jdbcType=INTEGER}, #{commodity_sample_in_id,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER}, #{sample_in_detail_sample,jdbcType=INTEGER},
+          #{commodity_sample_in_num,jdbcType=INTEGER}, #{sample_in_detail_confirm_status,jdbcType=INTEGER},
+          #{inventory_in_commodity_id,jdbcType=INTEGER}, #{sample_in_freight,jdbcType=DECIMAL},
+          #{sample_in_detail_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <select id="sampleInIds" parameterType="com.xinshan.pojo.commodity.SampleInSearchOption" resultType="java.lang.Integer">
+        select
+        DISTINCT commodity_sample_in.commodity_sample_in_id
+        from commodity_sample_in
+        left join commodity_sample_in_detail on commodity_sample_in.commodity_sample_in_id = commodity_sample_in_detail.commodity_sample_in_id
+        left join commodity_store on commodity_sample_in.commodity_store_id = commodity_store.commodity_store_id
+        left join supplier on supplier.supplier_id = commodity_sample_in.sample_in_supplier_id
+        left join commodity on commodity_sample_in_detail.commodity_id = commodity.commodity_id
+        where 1=1
+        <include refid="sampleInQuery"/>
+        order by commodity_sample_in.commodity_sample_in_id desc
+        <if test="limit != null and start != null">
+            limit #{start}, #{limit}
+        </if>
+    </select>
+    <select id="countSampleIn" parameterType="com.xinshan.pojo.commodity.SampleInSearchOption" resultType="java.lang.Integer">
+        select
+        count(DISTINCT commodity_sample_in.commodity_sample_in_id)
+        from commodity_sample_in
+        left join commodity_sample_in_detail on commodity_sample_in.commodity_sample_in_id = commodity_sample_in_detail.commodity_sample_in_id
+        left join commodity_store on commodity_sample_in.commodity_store_id = commodity_store.commodity_store_id
+        left join supplier on supplier.supplier_id = commodity_sample_in.sample_in_supplier_id
+        left join commodity on commodity_sample_in_detail.commodity_id = commodity.commodity_id
+        where 1=1
+        <include refid="sampleInQuery"/>
+    </select>
+    <sql id="sampleInQuery">
+        <if test="commodity_sample_in_id != null">
+            and commodity_sample_in.commodity_sample_in_id = #{commodity_sample_in_id}
+        </if>
+        <if test="commodity_id != null">
+            and commodity.commodity_id = #{commodity_id}
+        </if>
+        <if test="supplierIdList != null">
+            and supplier.supplier_id in
+            <foreach item="item" index="index" collection="supplierIdList"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id= #{supplier_id}
+        </if>
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or commodity.supplier_commodity_code like "%"#{param}"%"
+            )
+        </if>
+        <if test="startDate != null and endDate != null">
+            and commodity_sample_in.sample_in_date &gt;= #{startDate} and commodity_sample_in.sample_in_date &lt;= #{endDate}
+        </if>
+        <if test="sample_in_confirm_status != null">
+            and commodity_sample_in.sample_in_confirm_status = #{sample_in_confirm_status}
+        </if>
+        <if test="record_employee_code != null">
+            and commodity_sample_in.sample_in_employee_code = #{record_employee_code}
+        </if>
+    </sql>
+
+    <resultMap id="sampleInResultMap" type="com.xinshan.model.extend.commodity.SampleInExtend"
+               extends="com.xinshan.dao.CommoditySampleInMapper.BaseResultMap">
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="commodityStore" javaType="com.xinshan.model.CommodityStore"
+                     resultMap="com.xinshan.dao.CommodityStoreMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="sampleInList" parameterType="java.util.List" resultMap="sampleInResultMap">
+        select
+        commodity_sample_in.*
+        ,supplier.supplier_name,supplier.contacts
+        ,commodity_store.*
+        from commodity_sample_in
+        left join supplier on supplier.supplier_id = commodity_sample_in.sample_in_supplier_id
+        left join commodity_store on commodity_sample_in.commodity_store_id = commodity_store.commodity_store_id
+        WHERE 1=1
+        <if test="sampleInIds != null">
+            and commodity_sample_in.commodity_sample_in_id in
+            <foreach item="item" index="index" collection="sampleInIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by commodity_sample_in.commodity_sample_in_id desc
+    </select>
+
+    <resultMap id="sampleInDetailResultMap" type="com.xinshan.model.extend.commodity.SampleInDetailExtend"
+               extends="com.xinshan.dao.CommoditySampleInDetailMapper.BaseResultMap">
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="sampleInDetails" parameterType="com.xinshan.pojo.commodity.SampleInSearchOption"
+            resultMap="sampleInDetailResultMap">
+        select
+        commodity_sample_in_detail.*
+        ,commodity.commodity_name, commodity.commodity_code,
+        commodity.commodity_sample,commodity.supplier_commodity_code,commodity.sell_price
+        from commodity_sample_in_detail
+        left join commodity_sample_in on commodity_sample_in_detail.commodity_sample_in_id = commodity_sample_in.commodity_sample_in_id
+        left join commodity on commodity_sample_in_detail.commodity_id = commodity.commodity_id
+        where 1=1
+        <if test="commodity_sample_in_id != null">
+            and commodity_sample_in_detail.commodity_sample_in_id = #{commodity_sample_in_id}
+        </if>
+
+    </select>
+
+    <select id="sampleInCode" resultType="java.lang.String">
+        select max(sample_in_code) from commodity_sample_in where sample_in_code regexp #{param}
+    </select>
+</mapper>

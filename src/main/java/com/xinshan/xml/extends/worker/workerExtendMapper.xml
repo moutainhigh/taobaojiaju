@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.worker.WorkerExtendMapper">
+    <insert id="createWorker" parameterType="com.xinshan.model.Worker" useGeneratedKeys="true" keyProperty="worker_id">
+        insert into worker (worker_id, worker_name, worker_phone,
+          worker_status, worker_desc)
+        values (#{worker_id,jdbcType=INTEGER}, #{worker_name,jdbcType=VARCHAR}, #{worker_phone,jdbcType=VARCHAR},
+          #{worker_status,jdbcType=INTEGER}, #{worker_desc,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <select id="workers" parameterType="com.xinshan.pojo.worker.WorkerSearchOption" resultType="com.xinshan.model.Worker">
+        select * from worker
+        where 1=1
+        <if test="param != null">
+            and (worker_name like "%"#{param}"%" or worker_phone like "%"#{param}"%")
+        </if>
+        <if test="worker_id != null">
+            and worker.worker_id = #{worker_id}
+        </if>
+        order by worker_id
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countWorkers" parameterType="com.xinshan.pojo.worker.WorkerSearchOption" resultType="java.lang.Integer">
+        select count(*) from worker
+        where 1=1
+        <if test="param != null">
+            and (worker_name like "%"#{param}"%" or worker_phone like "%"#{param}"%")
+        </if>
+        <if test="worker_id != null">
+            and worker.worker_id = #{worker_id}
+        </if>
+    </select>
+</mapper>

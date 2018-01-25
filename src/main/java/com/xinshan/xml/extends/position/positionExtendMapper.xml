@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.position.PositionExtendMapper">
+    <insert id="createPosition" parameterType="com.xinshan.model.Position" useGeneratedKeys="true" keyProperty="">
+        insert into position (position_id, position_name, position_parent_id,
+          position_desc, visible_position_ids, daogou
+          )
+        values (#{position_id,jdbcType=INTEGER}, #{position_name,jdbcType=VARCHAR}, #{position_parent_id,jdbcType=INTEGER},
+          #{position_desc,jdbcType=VARCHAR}, #{visible_position_ids,jdbcType=VARCHAR}, #{daogou,jdbcType=INTEGER}
+          )
+    </insert>
+
+    <resultMap id="positionResultMap" type="com.xinshan.model.extend.position.PositionExtend"
+               extends="com.xinshan.dao.PositionMapper.BaseResultMap">
+
+    </resultMap>
+    <select id="positionList" parameterType="com.xinshan.pojo.position.PositionSearchOption" resultMap="positionResultMap">
+        select * from `position`
+        where 1=1
+        <if test="positionList != null">
+            and position_id in
+            <foreach item="item" index="index" collection="positionList"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="daogou != null">
+            and daogou = #{daogou}
+        </if>
+    </select>
+
+    <select id="updatePosition" parameterType="com.xinshan.model.Position">
+        update position
+        set position_name = #{position_name,jdbcType=VARCHAR},
+          position_parent_id = #{position_parent_id,jdbcType=INTEGER},
+          position_desc = #{position_desc,jdbcType=VARCHAR},
+          visible_position_ids = #{visible_position_ids,jdbcType=VARCHAR}
+        where position_id = #{position_id,jdbcType=INTEGER}
+    </select>
+
+    <select id="updatePositionDaogou" parameterType="com.xinshan.model.Position">
+        update position
+        set daogou = #{daogou,jdbcType=INTEGER}
+        where position_id = #{position_id,jdbcType=INTEGER}
+    </select>
+</mapper>

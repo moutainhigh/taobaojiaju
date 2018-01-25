@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.order.OrderReturnExtendMapper">
+    <insert id="createOrderReturn" parameterType="com.xinshan.model.OrderReturn" useGeneratedKeys="true" keyProperty="order_return_id">
+        insert into order_return (order_return_id, order_id, order_return_code,
+          order_return_employee_code, order_return_employee_name,
+          order_return_record_date, order_return_date,
+          return_commodity_amount, return_carry_fee,
+          return_amount, order_return_deduction_amount,
+          add_commodity_amount, add_carry_fee, add_amount,
+          order_return_preferential_amount, order_return_commodity_amount,
+          order_return_received_amount, order_return_check_status,
+          order_return_check_employee_code, order_return_check_employee_name,
+          order_return_purchase_status, after_sales_id,
+          order_return_type, order_return_inventory_in_status,
+          order_return_amount, order_return_pay_amount,
+          order_return_need_amount, order_return_pay_status,
+          order_return_deduction_amount_pay_status, order_return_settlement_status,
+          order_return_fee_check_status, inventory_history_id,
+          order_return_remark, order_pay_ids,
+          order_pay_return_ids, order_fee_ids
+          )
+        values (#{order_return_id,jdbcType=INTEGER}, #{order_id,jdbcType=INTEGER}, #{order_return_code,jdbcType=VARCHAR},
+          #{order_return_employee_code,jdbcType=VARCHAR}, #{order_return_employee_name,jdbcType=VARCHAR},
+          #{order_return_record_date,jdbcType=TIMESTAMP}, #{order_return_date,jdbcType=TIMESTAMP},
+          #{return_commodity_amount,jdbcType=DECIMAL}, #{return_carry_fee,jdbcType=DECIMAL},
+          #{return_amount,jdbcType=DECIMAL}, #{order_return_deduction_amount,jdbcType=DECIMAL},
+          #{add_commodity_amount,jdbcType=DECIMAL}, #{add_carry_fee,jdbcType=DECIMAL}, #{add_amount,jdbcType=DECIMAL},
+          #{order_return_preferential_amount,jdbcType=DECIMAL}, #{order_return_commodity_amount,jdbcType=DECIMAL},
+          #{order_return_received_amount,jdbcType=DECIMAL}, #{order_return_check_status,jdbcType=INTEGER},
+          #{order_return_check_employee_code,jdbcType=VARCHAR}, #{order_return_check_employee_name,jdbcType=VARCHAR},
+          #{order_return_purchase_status,jdbcType=INTEGER}, #{after_sales_id,jdbcType=INTEGER},
+          #{order_return_type,jdbcType=INTEGER}, #{order_return_inventory_in_status,jdbcType=INTEGER},
+          #{order_return_amount,jdbcType=DECIMAL}, #{order_return_pay_amount,jdbcType=DECIMAL},
+          #{order_return_need_amount,jdbcType=DECIMAL}, #{order_return_pay_status,jdbcType=INTEGER},
+          #{order_return_deduction_amount_pay_status,jdbcType=INTEGER}, #{order_return_settlement_status,jdbcType=INTEGER},
+          #{order_return_fee_check_status,jdbcType=INTEGER}, #{inventory_history_id,jdbcType=INTEGER},
+          #{order_return_remark,jdbcType=LONGVARCHAR}, #{order_pay_ids,jdbcType=LONGVARCHAR},
+          #{order_pay_return_ids,jdbcType=LONGVARCHAR}, #{order_fee_ids,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <insert id="createOrderReturnCommodity" parameterType="com.xinshan.model.OrderReturnCommodity"
+            useGeneratedKeys="true" keyProperty="order_return_commodity_id">
+        insert into order_return_commodity (order_return_commodity_id, order_return_id,
+          order_commodity_id, commodity_id, order_return_commodity_type,
+          order_return_commodity_num, activity_commodity_id,
+          unit_price, bargain_price, commodity_total_price,
+          return_commodity, revision_fee, discount,
+          sample, after_sales_commodity_id, inventory_in_commodity_id,
+          inventory_in_commodity_status, inventory_history_detail_id,
+          order_commodity_remark, revision_size
+          )
+        values (#{order_return_commodity_id,jdbcType=INTEGER}, #{order_return_id,jdbcType=INTEGER},
+          #{order_commodity_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER}, #{order_return_commodity_type,jdbcType=INTEGER},
+          #{order_return_commodity_num,jdbcType=INTEGER}, #{activity_commodity_id,jdbcType=INTEGER},
+          #{unit_price,jdbcType=DECIMAL}, #{bargain_price,jdbcType=DECIMAL}, #{commodity_total_price,jdbcType=DECIMAL},
+          #{return_commodity,jdbcType=INTEGER}, #{revision_fee,jdbcType=DECIMAL}, #{discount,jdbcType=DECIMAL},
+          #{sample,jdbcType=INTEGER}, #{after_sales_commodity_id,jdbcType=INTEGER}, #{inventory_in_commodity_id,jdbcType=INTEGER},
+          #{inventory_in_commodity_status,jdbcType=INTEGER}, #{inventory_history_detail_id,jdbcType=INTEGER},
+          #{order_commodity_remark,jdbcType=LONGVARCHAR}, #{revision_size,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <update id="updateOrderReturnOrderPayIds" parameterType="com.xinshan.model.OrderReturn">
+        update order_return set order_pay_ids = #{order_pay_ids} where order_return_id = #{order_return_id}
+    </update>
+    <update id="updateOrderReturnOrderReturnPayIds" parameterType="com.xinshan.model.OrderReturn">
+        update order_return set order_pay_return_ids = #{order_pay_return_ids} where order_return_id = #{order_return_id}
+    </update>
+    <select id="orderReturnCode" parameterType="java.lang.String" resultType="java.lang.String">
+        select max(order_return_code) from `order_return` where order_return_code regexp #{dateStr}
+    </select>
+
+    <resultMap id="orderReturnResultMap" type="com.xinshan.model.extend.order.OrderReturnExtend"
+               extends="com.xinshan.dao.OrderReturnMapper.BaseResultMap">
+        <association property="order" javaType="com.xinshan.model.Order" resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <collection property="orderReturnCommodities" ofType="com.xinshan.model.extend.order.OrderReturnCommodityExtend">
+            <id column="order_return_commodity_id" jdbcType="INTEGER" property="order_return_commodity_id" />
+            <result column="order_return_id" jdbcType="INTEGER" property="order_return_id" />
+            <result column="order_commodity_id" jdbcType="INTEGER" property="order_commodity_id" />
+            <result column="commodity_id" jdbcType="INTEGER" property="commodity_id" />
+            <result column="order_return_commodity_type" jdbcType="INTEGER" property="order_return_commodity_type" />
+            <result column="order_return_commodity_num" jdbcType="INTEGER" property="order_return_commodity_num" />
+            <result column="activity_commodity_id" jdbcType="INTEGER" property="activity_commodity_id" />
+            <result column="unit_price" jdbcType="DECIMAL" property="unit_price" />
+            <result column="bargain_price" jdbcType="DECIMAL" property="bargain_price" />
+            <result column="commodity_total_price" jdbcType="DECIMAL" property="commodity_total_price" />
+            <result column="return_commodity" jdbcType="INTEGER" property="return_commodity" />
+            <result column="revision_fee" jdbcType="DECIMAL" property="revision_fee" />
+            <result column="discount" jdbcType="DECIMAL" property="discount" />
+            <result column="sample" jdbcType="INTEGER" property="sample" />
+            <result column="after_sales_commodity_id" jdbcType="INTEGER" property="after_sales_commodity_id" />
+            <result column="inventory_in_commodity_id" jdbcType="INTEGER" property="inventory_in_commodity_id" />
+            <result column="inventory_in_commodity_status" jdbcType="INTEGER" property="inventory_in_commodity_status" />
+            <result column="inventory_history_detail_id" jdbcType="INTEGER" property="inventory_history_detail_id" />
+            <result column="order_commodity_remark" jdbcType="LONGVARCHAR" property="order_commodity_remark" />
+            <result column="revision_size" jdbcType="LONGVARCHAR" property="revision_size" />
+        </collection>
+    </resultMap>
+    <select id="orderReturnList" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultMap="orderReturnResultMap">
+        select * from order_return
+        left join order_return_commodity on order_return.order_return_id = order_return_commodity.order_return_id
+        left join `order` on `order`.order_id = order_return.order_id
+        where 1=1
+        <if test="orderReturnIds != null">
+            and order_return.order_return_id in
+            <foreach item="item" index="index" collection="orderReturnIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by order_return.order_return_record_date desc
+    </select>
+
+    <select id="orderReturnIds" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.lang.Integer">
+        select DISTINCT order_return.order_return_id from order_return
+        left join `order` on order_return.order_id = `order`.order_id
+        left join order_return_commodity on order_return.order_return_id = order_return_commodity.order_return_id
+        left join commodity on order_return_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or supplier.contacts like "%"#{param}"%"
+            )
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_return_check_status != null">
+            and find_in_set(order_return.order_return_check_status, #{order_return_check_status})
+        </if>
+        <if test="order_id != null">
+            and order_return.order_id = #{order_id}
+        </if>
+        <if test="order_return_id != null">
+            and order_return.order_return_id = #{order_return_id}
+        </if>
+        <if test="order_return_type != null">
+            and order_return.order_return_type = #{order_return_type}
+        </if>
+        <if test="order_return_pay_status != null">
+            and order_return.order_return_pay_status = #{order_return_pay_status}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (order_return.order_return_date &gt;= #{startDate} and #{endDate} &gt;= order_return.order_return_date)
+        </if>
+        <if test="after_sales_id != null">
+            and order_return.after_sales_id = #{after_sales_id}
+        </if>
+        order by order_return.order_return_record_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countOrderReturn" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT order_return.order_return_id) from order_return
+        left join `order` on order_return.order_id = `order`.order_id
+        left join order_return_commodity on order_return.order_return_id = order_return_commodity.order_return_id
+        left join commodity on order_return_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or supplier.contacts like "%"#{param}"%"
+            )
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_return_check_status != null">
+            and find_in_set(order_return.order_return_check_status, #{order_return_check_status})
+        </if>
+        <if test="order_id != null">
+            and order_return.order_id = #{order_id}
+        </if>
+        <if test="order_return_id != null">
+            and order_return.order_return_id = #{order_return_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (order_return.order_return_date &gt;= #{startDate} and #{endDate} &gt;= order_return.order_return_date)
+        </if>
+        <if test="after_sales_id != null">
+            and order_return.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="order_return_type != null">
+            and order_return.order_return_type = #{order_return_type}
+        </if>
+        <if test="order_return_pay_status != null">
+            and order_return.order_return_pay_status = #{order_return_pay_status}
+        </if>
+    </select>
+
+    <resultMap id="orderReturnCommodityResultMap" type="com.xinshan.model.extend.order.OrderReturnCommodityExtend"
+               extends="com.xinshan.dao.OrderReturnCommodityMapper.BaseResultMap">
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="afterSalesCommodity" javaType="com.xinshan.model.AfterSalesCommodity"
+                     resultMap="com.xinshan.dao.AfterSalesCommodityMapper.BaseResultMap"/>
+        <association property="orderCommodity" javaType="com.xinshan.model.OrderCommodity"
+                     resultMap="com.xinshan.dao.OrderCommodityMapper.BaseResultMap"/>
+        <association property="purchaseCommodity" javaType="com.xinshan.model.PurchaseCommodity"
+                     resultMap="com.xinshan.dao.PurchaseCommodityMapper.BaseResultMap"/>
+        <association property="orderReturn" javaType="com.xinshan.model.OrderReturn"
+                     resultMap="com.xinshan.dao.OrderReturnMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="orderReturnCommodities" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultMap="orderReturnCommodityResultMap">
+        select * from order_return_commodity
+        left join commodity on commodity.commodity_id = order_return_commodity.commodity_id
+        left join order_commodity on order_return_commodity.order_commodity_id = order_commodity.order_commodity_id
+        left join purchase_commodity on order_return_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        where 1=1
+        <if test="order_return_id != null">
+            and order_return_commodity.order_return_id = #{order_return_id}
+        </if>
+        <if test="order_return_commodity_type != null">
+            and order_return_commodity.order_return_commodity_type = #{order_return_commodity_type}
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+    </select>
+
+    <select id="orderReturnReport" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultMap="orderReturnCommodityResultMap">
+        select order_return_commodity.*
+        ,order_return.*
+        ,`order`.order_code,`order`.customer_name,`order`.customer_phone_number,`order`.employee_code,`order`.employee_name
+        ,commodity.commodity_name,commodity.commodity_code
+        ,order_commodity.*
+        ,purchase_commodity.*,supplier.supplier_name,supplier.contacts
+        from order_return_commodity
+        left join order_return on order_return_commodity.order_return_id = order_return.order_return_id
+        left join `order` on `order`.order_id = order_return.order_id
+        left join commodity on commodity.commodity_id = order_return_commodity.commodity_id
+        left join order_commodity on order_return_commodity.order_commodity_id = order_commodity.order_commodity_id
+        left join purchase_commodity on order_return_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join supplier on supplier.supplier_id = commodity.supplier_id
+        where 1=1
+        <if test="order_return_commodity_id != null">
+            and order_return_commodity.order_return_commodity_id = #{order_return_commodity_id}
+        </if>
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or supplier.contacts like "%"#{param}"%")
+        </if>
+        <if test="order_id != null">
+            and order_return.order_id = #{order_id}
+        </if>
+        <if test="order_return_id != null">
+            and order_return.order_return_id = #{order_return_id}
+        </if>
+        <if test="order_return_type != null">
+            and order_return.order_return_type = #{order_return_type}
+        </if>
+        <if test="order_return_pay_status != null">
+            and order_return.order_return_pay_status = #{order_return_pay_status}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (order_return.order_return_date &gt;= #{startDate} and #{endDate} &gt;= order_return.order_return_date)
+        </if>
+        <if test="after_sales_id != null">
+            and order_return.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        order by order_return.order_return_record_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countOrderReturnReport" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.lang.Integer">
+        select count(distinct order_return_commodity.order_return_commodity_id) from order_return_commodity
+        left join order_return on order_return_commodity.order_return_id = order_return.order_return_id
+        left join `order` on `order`.order_id = order_return.order_id
+        left join commodity on commodity.commodity_id = order_return_commodity.commodity_id
+        left join order_commodity on order_return_commodity.order_commodity_id = order_commodity.order_commodity_id
+        left join purchase_commodity on order_return_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join supplier on supplier.supplier_id = commodity.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or supplier.contacts like "%"#{param}"%")
+        </if>
+        <if test="order_id != null">
+            and order_return.order_id = #{order_id}
+        </if>
+        <if test="order_return_id != null">
+            and order_return.order_return_id = #{order_return_id}
+        </if>
+        <if test="order_return_type != null">
+            and order_return.order_return_type = #{order_return_type}
+        </if>
+        <if test="order_return_pay_status != null">
+            and order_return.order_return_pay_status = #{order_return_pay_status}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (order_return.order_return_date &gt;= #{startDate} and #{endDate} &gt;= order_return.order_return_date)
+        </if>
+        <if test="after_sales_id != null">
+            and order_return.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+    </select>
+</mapper>

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.gift.GiftExtendMapper">
+
+    <insert id="createGift" parameterType="com.xinshan.model.Gift" useGeneratedKeys="true" keyProperty="gift_id">
+        insert into gift (gift_id, gift_code, user_id,
+          gift_type, order_id, activity_id,
+          expense_type, supplier_id, gift_create_employee_code,
+          gift_create_employee_name, gift_create_date,
+          gift_return_status, gift_return_employee_code,
+          gift_return_employee_name, gift_return_date,
+          gift_settlement_status, gift_out_status,
+          gift_enable, gift_purchase_status, gift_remark,
+          gift_return_remark)
+        values (#{gift_id,jdbcType=INTEGER}, #{gift_code,jdbcType=VARCHAR}, #{user_id,jdbcType=INTEGER},
+          #{gift_type,jdbcType=INTEGER}, #{order_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{expense_type,jdbcType=INTEGER}, #{supplier_id,jdbcType=INTEGER}, #{gift_create_employee_code,jdbcType=VARCHAR},
+          #{gift_create_employee_name,jdbcType=VARCHAR}, #{gift_create_date,jdbcType=TIMESTAMP},
+          #{gift_return_status,jdbcType=INTEGER}, #{gift_return_employee_code,jdbcType=VARCHAR},
+          #{gift_return_employee_name,jdbcType=VARCHAR}, #{gift_return_date,jdbcType=TIMESTAMP},
+          #{gift_settlement_status,jdbcType=INTEGER}, #{gift_out_status,jdbcType=INTEGER},
+          #{gift_enable,jdbcType=INTEGER}, #{gift_purchase_status,jdbcType=INTEGER}, #{gift_remark,jdbcType=LONGVARCHAR},
+          #{gift_return_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="createGiftCommodity" parameterType="com.xinshan.model.GiftCommodity" useGeneratedKeys="true" keyProperty="gift_commodity_id">
+        insert into gift_commodity (gift_commodity_id, gift_id, commodity_id,
+          gift_commodity_num, gift_commodity_out_status,
+          gift_commodity_return_status, commodity_num_id,
+          gift_commodity_sample, gift_commodity_remark
+          )
+        values (#{gift_commodity_id,jdbcType=INTEGER}, #{gift_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER},
+          #{gift_commodity_num,jdbcType=INTEGER}, #{gift_commodity_out_status,jdbcType=INTEGER},
+          #{gift_commodity_return_status,jdbcType=INTEGER}, #{commodity_num_id,jdbcType=INTEGER},
+          #{gift_commodity_sample,jdbcType=INTEGER}, #{gift_commodity_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <select id="giftIds" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultType="java.lang.Integer">
+        select DISTINCT gift.gift_id FROM gift
+        left join `user` on `user`.user_id = gift.user_id
+        left join `order` on `order`.order_id = gift.order_id
+        left join supplier on supplier.supplier_id = gift.supplier_id
+        left join gift_commodity on gift.gift_id = gift_commodity.gift_id
+        left join activity on gift.activity_id = activity.activity_id
+        where 1=1
+        <include refid="giftQuery"/>
+        order by gift.gift_id DESC
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countGift" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT gift.gift_id) FROM gift
+        left join `user` on `user`.user_id = gift.user_id
+        left join `order` on `order`.order_id = gift.order_id
+        left join supplier on supplier.supplier_id = gift.supplier_id
+        left join gift_commodity on gift.gift_id = gift_commodity.gift_id
+        left join activity on gift.activity_id = activity.activity_id
+        where 1=1
+        <include refid="giftQuery"/>
+    </select>
+
+    <sql id="giftQuery">
+        <if test="supplier_id != null">
+            and gift.supplier_id = #{supplier_id}
+        </if>
+        <if test="param != null">
+            and (gift.gift_code like "%"#{param}"%"
+            or `user`.user_name like "%"#{param}"%"
+            or `user`.user_phone like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            )
+        </if>
+        <if test="gift_return_status != null">
+            and gift.gift_return_status = #{gift_return_status}
+        </if>
+        <if test="gift_id != null">
+            and gift.gift_id = #{gift_id}
+        </if>
+        <if test="gift_enable != null">
+            and gift.gift_enable = #{gift_enable}
+        </if>
+        <if test="position_id != null">
+            and `order`.position_id = #{position_id}
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="gift_type != null">
+            and gift.gift_type = #{gift_type}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (gift.gift_create_date &gt;= #{startDate} and gift.gift_create_date &lt; #{endDate})
+        </if>
+        <if test="gift_commodity_id != null">
+            and gift_commodity.gift_commodity_id = #{gift_commodity_id}
+        </if>
+    </sql>
+    <resultMap id="giftResultMap" type="com.xinshan.model.extend.gift.GiftExtend"
+               extends="com.xinshan.dao.GiftMapper.BaseResultMap">
+        <association property="user" javaType="com.xinshan.model.User"
+                     resultMap="com.xinshan.dao.UserMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="giftList" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultMap="giftResultMap">
+        select
+        gift.*,
+        `order`.order_code,`order`.customer_name,`order`.customer_phone_number,
+        `order`.delivery_date,`order`.delivery_address,`order`.employee_name
+        ,`user`.user_name,`user`.user_phone,`user`.user_address
+        ,supplier.supplier_name
+        ,activity.activity_name
+        FROM gift
+        left join `user` on `user`.user_id = gift.user_id
+        left join `order` on `order`.order_id = gift.order_id
+        left join supplier on supplier.supplier_id = gift.supplier_id
+        left join gift_commodity on gift.gift_id = gift_commodity.gift_id
+        left join activity on gift.activity_id = activity.activity_id
+        where 1=1
+        <if test="giftIds != null">
+            and gift.gift_id in
+            <foreach item="item" index="index" collection="giftIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by gift.gift_id DESC
+    </select>
+    <resultMap id="giftCommodityResultMap" type="com.xinshan.model.extend.gift.GiftCommodityExtend"
+               extends="com.xinshan.dao.GiftCommodityMapper.BaseResultMap">
+        <association property="gift" javaType="com.xinshan.model.Gift"
+                     resultMap="com.xinshan.dao.GiftMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="commodityNum" javaType="com.xinshan.model.CommodityNum"
+                     resultMap="com.xinshan.dao.CommodityNumMapper.BaseResultMap"/>
+        <association property="commodityStore" javaType="com.xinshan.model.CommodityStore"
+                     resultMap="com.xinshan.dao.CommodityStoreMapper.BaseResultMap"/>
+        <association property="user" javaType="com.xinshan.model.User"
+                     resultMap="com.xinshan.dao.UserMapper.BaseResultMap"/>
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="purchaseCommodity" javaType="com.xinshan.model.PurchaseCommodity"
+                     resultMap="com.xinshan.dao.PurchaseCommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="giftCommodities" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultMap="giftCommodityResultMap">
+        select gift_commodity.*,gift.*,`user`.user_name,`user`.user_phone,`user`.user_address
+        ,commodity.commodity_name,commodity.commodity_code,commodity.purchase_price,commodity.sell_price
+        ,supplier.supplier_name,supplier.supplier_id
+        ,commodity_num.*
+        ,commodity_store.store_name,activity.activity_name,
+        `order`.order_code,`order`.customer_name,`order`.customer_phone_number,
+        `order`.delivery_date,`order`.delivery_address,`order`.employee_name
+        ,`user`.user_name,`user`.user_phone,`user`.user_address
+        ,purchase_commodity.*
+        from gift_commodity
+        left join gift on gift.gift_id = gift_commodity.gift_id
+        left join `order` on `order`.order_id = gift.order_id
+        left JOIN activity on gift.activity_id = activity.activity_id
+        left join `user` on `user`.user_id = gift.user_id
+        left join commodity on gift_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join commodity_num on gift_commodity.commodity_num_id = commodity_num.commodity_num_id
+        left join commodity_store on commodity_num.commodity_store_id = commodity_store.commodity_store_id
+        left join purchase_commodity on gift_commodity.gift_commodity_id = purchase_commodity.gift_commodity_id
+        where 1=1
+        <include refid="giftQuery"/>
+        order by gift_commodity.gift_commodity_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countGiftCommodities" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT gift_commodity.gift_commodity_id)
+        from gift_commodity
+        left join gift on gift.gift_id = gift_commodity.gift_id
+        left join `order` on `order`.order_id = gift.order_id
+        left JOIN activity on gift.activity_id = activity.activity_id
+        left join `user` on `user`.user_id = gift.user_id
+        left join commodity on gift_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join commodity_num on gift_commodity.commodity_num_id = commodity_num.commodity_num_id
+        left join commodity_store on commodity_num.commodity_store_id = commodity_store.commodity_store_id
+        where 1=1
+        <include refid="giftQuery"/>
+    </select>
+    <select id="todayGiftNum" resultType="java.lang.String">
+        select max(gift_code) from gift where gift_code regexp #{dateStr}
+    </select>
+</mapper>

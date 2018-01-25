@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.sys.SystemExtendMapper">
+
+    <select id="requestHistories" parameterType="com.xinshan.pojo.requestHistory.RequestHistorySearchOption"
+            resultType="com.xinshan.model.RequestHistory">
+        select employee_code,employee_name,request_url,request_time
+        <if test="query_request_data != null">
+            ,request_data
+        </if>
+        from request_history
+        where 1=1
+        <include refid="query"/>
+        order by request_time desc
+        <if test="start!=null and limit != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="query">
+        <if test="request_url != null">
+            and request_url = #{request_url}
+        </if>
+        <if test="print_commodity_id != null">
+            and (request_param like concat('%,',#{print_commodity_id},'%')
+            or request_param like concat('%',#{print_commodity_id},',%')
+            or request_param regexp concat('\"',#{print_commodity_id},'\"'))
+        </if>
+        <if test="order_id != null">
+            and (request_data like concat('%\"order_id\":\"', #{order_id}, '\"%'))
+        </if>
+        <if test="startTime != null and endTime != null">
+            and (request_time &gt;= #{startTime} and #{endTime} &gt;= request_time)
+        </if>
+    </sql>
+    <select id="count" parameterType="com.xinshan.pojo.requestHistory.RequestHistorySearchOption" resultType="java.lang.Integer">
+        select count(*) from request_history
+        where 1=1
+        <include refid="query"/>
+    </select>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.checkCode.CheckCodeExtendMapper">
+    <insert id="createCheckCode" parameterType="com.xinshan.model.UserCheckCode" useGeneratedKeys="true" keyProperty="user_check_code_id">
+        insert into user_check_code (user_check_code_id, phone_number,
+          check_code, effective_date, invalid_date,
+          use_date, invalid_type, msg_result,
+          msg_param)
+        values (#{user_check_code_id,jdbcType=INTEGER}, #{phone_number,jdbcType=VARCHAR},
+          #{check_code,jdbcType=VARCHAR}, #{effective_date,jdbcType=TIMESTAMP}, #{invalid_date,jdbcType=TIMESTAMP},
+          #{use_date,jdbcType=TIMESTAMP}, #{invalid_type,jdbcType=INTEGER}, #{msg_result,jdbcType=LONGVARCHAR},
+          #{msg_param,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <select id="getCheckCode" parameterType="com.xinshan.pojo.checkCode.CheckCodeSearchOption" resultType="com.xinshan.model.UserCheckCode">
+        select * from user_check_code
+        where 1=1
+        <if test="phone_number != null">
+            and phone_number = #{phone_number}
+        </if>
+        <if test="check_code != null">
+            and check_code = #{check_code}
+        </if>
+        <if test="invalid_type != null">
+            <choose>
+                <when test="invalid_type == 0">
+                    and invalid_type is null
+                </when>
+                <otherwise>
+                    and invalid_type = #{invalid_type}
+                </otherwise>
+            </choose>
+        </if>
+    </select>
+</mapper>

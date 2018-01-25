@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.inventory.InventoryExtendMapper">
+    <select id="getNumByCommodityIdAndStoreId" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="com.xinshan.model.CommodityNum">
+        select * from commodity_num where commodity_id = #{commodity_id} and commodity_store_id=#{commodity_store_id}
+        and sample = #{sample} and return_commodity = #{return_commodity}
+    </select>
+
+    <resultMap id="commodityNumResultMap" type="com.xinshan.model.extend.commodity.CommodityNumExtend"
+               extends="com.xinshan.dao.CommodityNumMapper.BaseResultMap">
+        <association property="commodity" resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap">
+
+        </association>
+        <association property="commodityStore" resultMap="com.xinshan.dao.CommodityStoreMapper.BaseResultMap">
+
+        </association>
+        <association property="supplier" resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap">
+
+        </association>
+        <association property="commodityColor" resultMap="com.xinshan.dao.CommodityColorMapper.BaseResultMap">
+
+        </association>
+        <association property="commodityUnit" resultMap="com.xinshan.dao.CommodityUnitMapper.BaseResultMap">
+
+        </association>
+        <association property="category" resultMap="com.xinshan.dao.CategoryMapper.BaseResultMap">
+
+        </association>
+    </resultMap>
+    <select id="commodityNumList" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultMap="commodityNumResultMap">
+        select * from commodity_num
+        left join commodity on commodity_num.commodity_id = commodity.commodity_id
+        left join commodity_store on commodity_store.commodity_store_id = commodity_num.commodity_store_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join category on commodity.category_id = category.category_id
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity.commodity_color_id = commodity_color.commodity_color_id
+        where 1=1
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or commodity.supplier_commodity_code like "%"#{param}"%")
+        </if>
+        <if test="commodity_id != null">
+            and commodity.commodity_id=#{commodity_id}
+        </if>
+        <if test="commodity_unit_id != null">
+            and commodity.commodity_unit_id=#{commodity_unit_id}
+        </if>
+        <if test="commodity_color_id != null">
+            and commodity.commodity_color_id=#{commodity_color_id}
+        </if>
+        <if test="commodity_store_id != null">
+            and commodity_num.commodity_store_id=#{commodity_store_id}
+        </if>
+        <if test="commodity_code != null">
+            and commodity.commodity_code=#{commodity_code}
+        </if>
+        <if test="commodity_ids != null">
+            and find_in_set(commodity.commodity_id, #{commodity_ids})
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="commodity_num != null">
+            and commodity_num.num &gt; #{commodity_num}
+        </if>
+        <if test="sample != null">
+            and commodity_num.sample = #{sample}
+        </if>
+        <if test="return_commodity != null">
+            and commodity_num.return_commodity = #{return_commodity}
+        </if>
+        <if test="commodity_num_id != null">
+            and commodity_num.commodity_num_id = #{commodity_num_id}
+        </if>
+        <if test="commodity_status != null">
+            and commodity.commodity_status = #{commodity_status}
+        </if>
+        order by
+        <choose>
+            <when test="priceOrder != null and priceOrder == 0">
+                commodity.sell_price asc,
+            </when>
+            <when test="priceOrder != null and priceOrder == 0">
+                commodity.sell_price desc,
+            </when>
+        </choose>
+        commodity.commodity_id desc, commodity_store.commodity_store_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countCommodityNum" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="java.lang.Integer">
+        select count(*) from commodity_num
+        left join commodity on commodity_num.commodity_id = commodity.commodity_id
+        left join commodity_store on commodity_store.commodity_store_id = commodity_num.commodity_store_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join category on commodity.category_id = category.category_id
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity.commodity_color_id = commodity_color.commodity_color_id
+        where 1=1
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or commodity.supplier_commodity_code like "%"#{param}"%")
+        </if>
+        <if test="commodity_id != null">
+            and commodity.commodity_id=#{commodity_id}
+        </if>
+        <if test="commodity_unit_id != null">
+            and commodity.commodity_unit_id=#{commodity_unit_id}
+        </if>
+        <if test="commodity_color_id != null">
+            and commodity.commodity_color_id=#{commodity_color_id}
+        </if>
+        <if test="commodity_store_id != null">
+            and commodity_num.commodity_store_id=#{commodity_store_id}
+        </if>
+        <if test="commodity_code != null">
+            and commodity.commodity_code=#{commodity_code}
+        </if>
+        <if test="commodity_ids != null">
+            and find_in_set(commodity.commodity_id, #{commodity_ids})
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="commodity_num != null">
+            and commodity_num.num &gt; #{commodity_num}
+        </if>
+        <if test="sample != null">
+            and commodity_num.sample = #{sample}
+        </if>
+        <if test="return_commodity != null">
+            and commodity_num.return_commodity = #{return_commodity}
+        </if>
+        <if test="commodity_num_id != null">
+            and commodity_num.commodity_num_id = #{commodity_num_id}
+        </if>
+        <if test="commodity_status != null">
+            and commodity.commodity_status = #{commodity_status}
+        </if>
+    </select>
+
+    <select id="InventoryNum" resultType="java.lang.Integer">
+        select sum(num) from commodity_num
+        where
+        commodity_id = #{commodity_id}
+        and sample = #{sample}
+    </select>
+
+    <insert id="createCommodityNum" parameterType="com.xinshan.model.CommodityNum" useGeneratedKeys="true" keyProperty="commodity_num_id">
+        insert into commodity_num (commodity_num_id, commodity_id, num,
+          commodity_store_id, sample, return_commodity
+          )
+        values (#{commodity_num_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER}, #{num,jdbcType=INTEGER},
+          #{commodity_store_id,jdbcType=INTEGER}, #{sample,jdbcType=INTEGER}, #{return_commodity,jdbcType=INTEGER}
+          )
+    </insert>
+
+    <select id="inventoryHistoryStatics" parameterType="com.xinshan.pojo.inventory.InventorySearchOption" resultType="java.util.Map">
+        select
+        inventory_history_detail.inventory_history_id as inventory_history_id,
+        inventory_history_detail.inventory_history_num as inventory_history_num ,
+        inventory_history_detail.inventory_in_commodity_id as inventory_in_commodity_id ,
+        inventory_history_detail.inventory_out_commodity_id as inventory_out_commodity_id ,
+        inventory_history.inventory_type as inventory_type,
+        inventory_history.inventory_history_in_out as inventory_history_in_out
+        from inventory_history_detail
+        left join inventory_history on inventory_history_detail.inventory_history_id = inventory_history.inventory_history_id
+        left join commodity on inventory_history_detail.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or `order`.customer_name like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%")
+        </if>
+        <if test="order_id != null">
+            and inventory_history.order_id = #{order_id}
+        </if>
+        <if test="inventory_in_id != null">
+            and inventory_history.inventory_in_id = #{inventory_in_id}
+        </if>
+        <if test="inventory_history_in_out != null">
+            and inventory_history.inventory_history_in_out = #{inventory_history_in_out}
+        </if>
+        <if test="inventory_out_id != null">
+            and inventory_history.inventory_out_id = #{inventory_out_id}
+        </if>
+        <if test="inventory_history_id != null">
+            and inventory_history.inventory_history_id = #{inventory_history_id}
+        </if>
+        <if test="inventory_type != null">
+            and inventory_history.inventory_type = #{inventory_type}
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="commodity_id != null">
+            and inventory_history_detail.commodity_id = #{commodity_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (inventory_history.inventory_date &gt;= #{startDate} and inventory_history.inventory_date &lt;= #{endDate})
+        </if>
+        <choose>
+            <when test="inventory_in_commodity_freight != null and inventory_in_commodity_freight == 0"><!-- 无云费 -->
+                and (inventory_history_detail.inventory_in_commodity_freight = 0 or inventory_history_detail.inventory_in_commodity_freight is null)
+            </when>
+            <when test="inventory_in_commodity_freight != null and inventory_in_commodity_freight == 1"><!-- 有云费 -->
+                and inventory_history_detail.inventory_in_commodity_freight &gt; 0
+            </when>
+        </choose>
+    </select>
+
+    <select id="stores" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="com.xinshan.model.CommodityStore">
+        select * from commodity_store
+        where 1=1
+        <if test="store_name != null">
+            and store_name=#{store_name}
+        </if>
+        <if test="commodity_store_id != null">
+            and commodity_store_id = #{commodity_store_id}
+        </if>
+        <if test="store_enable != null">
+            and store_enable = #{store_enable}
+        </if>
+    </select>
+    <insert id="createStore" parameterType="com.xinshan.model.CommodityStore" useGeneratedKeys="true" keyProperty="commodity_store_id">
+        insert into commodity_store (commodity_store_id, store_name, store_enable
+          )
+        values (#{commodity_store_id,jdbcType=INTEGER}, #{store_name,jdbcType=VARCHAR}, #{store_enable,jdbcType=INTEGER}
+          )
+    </insert>
+</mapper>

@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.activity.ValueAddedExtendMapper" >
+    <insert id="createValueAddedCard" parameterType="com.xinshan.model.ValueAddedCard" keyProperty="value_added_card_id" useGeneratedKeys="true">
+        insert into value_added_card (value_added_card_id, activity_id,
+          value_added_card_code, user_id, pay_amount,
+          value_added_create_employee_code, value_added_create_employee_name,
+          value_added_create_date, order_id, card_enable,
+          card_return_status, gift_status, return_gift_status,
+          take_date, recycling_date, disable_date,
+          return_amount, pay_ids, take_remark,
+          recycling_remark, disable_remark,
+          pay_return_ids)
+        values (#{value_added_card_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{value_added_card_code,jdbcType=VARCHAR}, #{user_id,jdbcType=INTEGER}, #{pay_amount,jdbcType=DECIMAL},
+          #{value_added_create_employee_code,jdbcType=VARCHAR}, #{value_added_create_employee_name,jdbcType=VARCHAR},
+          #{value_added_create_date,jdbcType=TIMESTAMP}, #{order_id,jdbcType=INTEGER}, #{card_enable,jdbcType=INTEGER},
+          #{card_return_status,jdbcType=INTEGER}, #{gift_status,jdbcType=INTEGER}, #{return_gift_status,jdbcType=INTEGER},
+          #{take_date,jdbcType=TIMESTAMP}, #{recycling_date,jdbcType=TIMESTAMP}, #{disable_date,jdbcType=TIMESTAMP},
+          #{return_amount,jdbcType=DECIMAL}, #{pay_ids,jdbcType=LONGVARCHAR}, #{take_remark,jdbcType=LONGVARCHAR},
+          #{recycling_remark,jdbcType=LONGVARCHAR}, #{disable_remark,jdbcType=LONGVARCHAR},
+          #{pay_return_ids,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="createValueAddedCardBooking" parameterType="com.xinshan.model.ValueAddedCardBooking" keyProperty="value_added_card_booking_id" useGeneratedKeys="true">
+        insert into value_added_card_booking (value_added_card_booking_id, user_id,
+          activity_id, booking_date, booking_create_date,
+          booking_create_employee_code, booking_create_employee_name,
+          booking_status, take_card_date, value_added_card_id,
+          booking_remark)
+        values (#{value_added_card_booking_id,jdbcType=INTEGER}, #{user_id,jdbcType=INTEGER},
+          #{activity_id,jdbcType=INTEGER}, #{booking_date,jdbcType=TIMESTAMP}, #{booking_create_date,jdbcType=TIMESTAMP},
+          #{booking_create_employee_code,jdbcType=VARCHAR}, #{booking_create_employee_name,jdbcType=VARCHAR},
+          #{booking_status,jdbcType=INTEGER}, #{take_card_date,jdbcType=TIMESTAMP}, #{value_added_card_id,jdbcType=INTEGER},
+          #{booking_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <resultMap id="bookingResultMap" type="com.xinshan.model.extend.activity.ValueAddedCardBookingExtend"
+               extends="com.xinshan.dao.ValueAddedCardBookingMapper.BaseResultMap">
+        <association property="valueAddedCard" javaType="com.xinshan.model.ValueAddedCard"
+                     resultMap="com.xinshan.dao.ValueAddedCardMapper.BaseResultMap"/>
+        <association property="user" javaType="com.xinshan.model.User"
+                     resultMap="com.xinshan.dao.UserMapper.BaseResultMap"/>
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="activityValueAdded" javaType="com.xinshan.model.ActivityValueAdded"
+                     resultMap="com.xinshan.dao.ActivityValueAddedMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="valueAddedCardBookings" parameterType="com.xinshan.pojo.activity.ValueAddedCardSearchOption"
+            resultMap="bookingResultMap">
+        select value_added_card_booking.*
+        ,value_added_card.*
+        ,`user`.user_name,`user`.user_phone
+        ,activity.activity_name,activity.activity_start_date,activity.activity_end_date,activity.activity_type,activity.activity_status
+        ,activity_value_added.*
+        from value_added_card_booking
+        left join value_added_card on value_added_card.value_added_card_id = value_added_card_booking.value_added_card_id
+        left join `user` on value_added_card_booking.user_id = `user`.user_id
+        left join activity on activity.activity_id = value_added_card_booking.activity_id
+        left JOIN activity_value_added on activity.activity_id = activity_value_added.activity_id
+        WHERE 1=1
+        <if test="param != null">
+            and (value_added_card.value_added_card_code like "%"#{param}"%"
+            or `user`.user_name like "%"#{param}"%"
+            or `user`.user_phone like "%"#{param}"%"
+            )
+        </if>
+        <if test="booking_status != null">
+            and value_added_card_booking.booking_status = #{booking_status}
+        </if>
+        <choose>
+            <when test="order_id != null and order_id == 1">
+                and value_added_card.order_id is not null
+            </when>
+            <when test="order_id != null and order_id == 2">
+                and value_added_card.order_id is null
+            </when>
+        </choose>
+        <if test="value_added_card_booking_id != null">
+            and value_added_card_booking.value_added_card_booking_id = #{value_added_card_booking_id}
+        </if>
+        <if test="user_phone != null">
+            and `user`.user_phone = #{user_phone}
+        </if>
+        <if test="card_enable != null">
+            and value_added_card.card_enable = #{card_enable}
+        </if>
+        <if test="user_id != null">
+            and `user`.user_id = #{user_id}
+        </if>
+        <if test="activity_id != null">
+            and activity.activity_id = #{activity_id}
+        </if>
+        <if test="card_return_status != null">
+            and value_added_card.card_return_status = #{card_return_status}
+        </if>
+        <if test="gift_status != null">
+            and value_added_card.gift_status = #{gift_status}
+        </if>
+        <if test="return_gift_status != null">
+            and value_added_card.return_gift_status = #{return_gift_status}
+        </if>
+        order by value_added_card_booking.booking_create_date desc
+        <if test="limit != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countValueAddedCardBookings" parameterType="com.xinshan.pojo.activity.ValueAddedCardSearchOption" resultType="java.lang.Integer">
+        select
+        count(*)
+        from value_added_card_booking
+        left join `user` on value_added_card_booking.user_id = `user`.user_id
+        left join activity on activity.activity_id = value_added_card_booking.activity_id
+        left JOIN activity_value_added on activity.activity_id = activity_value_added.activity_id
+        left join value_added_card on value_added_card.value_added_card_id = value_added_card_booking.value_added_card_id
+        WHERE 1=1
+        <if test="param != null">
+            and (value_added_card.value_added_card_code like "%"#{param}"%"
+            or `user`.user_name like "%"#{param}"%"
+            or `user`.user_phone like "%"#{param}"%"
+            )
+        </if>
+        <if test="booking_status != null">
+            and value_added_card_booking.booking_status = #{booking_status}
+        </if>
+        <choose>
+            <when test="order_id != null and order_id == 1">
+                and value_added_card.order_id is not null
+            </when>
+            <when test="order_id != null and order_id == 2">
+                and value_added_card.order_id is null
+            </when>
+        </choose>
+        <if test="card_enable != null">
+            and value_added_card.card_enable = #{card_enable}
+        </if>
+        <if test="value_added_card_booking_id != null">
+            and value_added_card_booking.value_added_card_booking_id = #{value_added_card_booking_id}
+        </if>
+        <if test="user_phone != null">
+            and `user`.user_phone = #{user_phone}
+        </if>
+        <if test="user_id != null">
+            and `user`.user_id = #{user_id}
+        </if>
+        <if test="activity_id != null">
+            and activity.activity_id = #{activity_id}
+        </if>
+        <if test="card_return_status != null">
+            and value_added_card.card_return_status = #{card_return_status}
+        </if>
+        <if test="gift_status != null">
+            and value_added_card.gift_status = #{gift_status}
+        </if>
+        <if test="return_gift_status != null">
+            and value_added_card.return_gift_status = #{return_gift_status}
+        </if>
+    </select>
+    <resultMap id="cardResultMap" type="com.xinshan.model.extend.activity.ValueAddedCardExtend"
+               extends="com.xinshan.dao.ValueAddedCardMapper.BaseResultMap">
+        <association property="user" javaType="com.xinshan.model.User" resultMap="com.xinshan.dao.UserMapper.BaseResultMap"/>
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="activityValueAdded" javaType="com.xinshan.model.ActivityValueAdded"
+                     resultMap="com.xinshan.dao.ActivityValueAddedMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order" resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="valueAddedCards" parameterType="com.xinshan.pojo.activity.ValueAddedCardSearchOption" resultMap="cardResultMap">
+        select value_added_card.*
+        ,`user`.user_name,`user`.user_phone
+        ,activity.activity_name,activity.activity_start_date,activity.activity_end_date,activity.activity_type,activity.activity_status
+        ,activity_value_added.*
+        from value_added_card
+        left join `user` on value_added_card.user_id = `user`.user_id
+        left join activity on activity.activity_id = value_added_card.activity_id
+        left JOIN activity_value_added on activity.activity_id = activity_value_added.activity_id
+        left join `order` on `order`.order_id = value_added_card.order_id
+        WHERE 1=1
+        <if test="card_enable != null">
+            and value_added_card.card_enable = #{card_enable}
+        </if>
+        <if test="activity_id != null">
+            and value_added_card.activity_id = #{activity_id}
+        </if>
+        <if test="param != null">
+            and (value_added_card.value_added_card_code like "%"#{param}"%")
+        </if>
+        <if test="value_added_card_code != null">
+            and value_added_card.value_added_card_code = #{value_added_card_code}
+        </if>
+        <if test="card_return_status != null">
+            and value_added_card.card_return_status = #{card_return_status}
+        </if>
+        <if test="gift_status != null">
+            and value_added_card.gift_status = #{gift_status}
+        </if>
+        <if test="return_gift_status != null">
+            and value_added_card.return_gift_status = #{return_gift_status}
+        </if>
+        <if test="order_id != null">
+            and value_added_card.order_id = #{order_id}
+        </if>
+        order by value_added_card.value_added_create_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countValueAddedCard" parameterType="com.xinshan.pojo.activity.ValueAddedCardSearchOption" resultType="java.lang.Integer">
+        select count(*) from value_added_card
+        left join `user` on value_added_card.user_id = `user`.user_id
+        WHERE 1=1
+        <if test="card_enable != null">
+            and value_added_card.card_enable = #{card_enable}
+        </if>
+        <if test="activity_id != null">
+            and value_added_card.activity_id = #{activity_id}
+        </if>
+        <if test="param != null">
+            and (value_added_card.value_added_card_code like "%"#{param}"%")
+        </if>
+        <if test="value_added_card_code != null">
+            and value_added_card.value_added_card_code = #{value_added_card_code}
+        </if>
+        <if test="card_return_status != null">
+            and value_added_card.card_return_status = #{card_return_status}
+        </if>
+        <if test="gift_status != null">
+            and value_added_card.gift_status = #{gift_status}
+        </if>
+        <if test="return_gift_status != null">
+            and value_added_card.return_gift_status = #{return_gift_status}
+        </if>
+        <if test="order_id != null">
+            and value_added_card.order_id = #{order_id}
+        </if>
+    </select>
+</mapper>

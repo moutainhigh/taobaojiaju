@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.role.RoleExtendMapper">
+    <insert id="createRole" parameterType="com.xinshan.model.Role" keyProperty="role_id" useGeneratedKeys="true">
+        insert into role (role_id, role_name, parent_role_id,
+          role_remark, app_ids, button_ids
+          )
+        values (#{role_id,jdbcType=INTEGER}, #{role_name,jdbcType=VARCHAR}, #{parent_role_id,jdbcType=INTEGER},
+          #{role_remark,jdbcType=LONGVARCHAR}, #{app_ids,jdbcType=LONGVARCHAR}, #{button_ids,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <resultMap id="roleResultMap" type="com.xinshan.model.extend.role.RoleExtend" extends="com.xinshan.dao.RoleMapper.BaseResultMap">
+
+    </resultMap>
+    <select id="roleList" parameterType="com.xinshan.pojo.role.RoleSearchOption" resultMap="roleResultMap">
+        select * from role
+        WHERE 1=1
+        <if test="roleIds != null">
+            and role_id in
+            <foreach item="item" index="index" collection="roleIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by role_id asc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countRole" parameterType="com.xinshan.pojo.role.RoleSearchOption" resultType="java.lang.Integer">
+        select count(*) from role
+        WHERE 1=1
+        <if test="roleIds != null">
+            and role_id in
+            <foreach item="item" index="index" collection="roleIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

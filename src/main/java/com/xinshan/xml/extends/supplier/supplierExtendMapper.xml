@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.supplier.SupplierExtendMapper">
+    <insert id="createSupplier" parameterType="com.xinshan.model.Supplier" useGeneratedKeys="true" keyProperty="supplier_id">
+        insert into supplier (supplier_id, supplier_name, address,
+          district_zip, province_zip, city_zip,
+          contacts_phone_number, contacts, contacts_address,
+          supplier_rate, supplier_status, sell_type_id,
+          record_employee_code, record_employee_name,
+          contacts_code)
+        values (#{supplier_id,jdbcType=INTEGER}, #{supplier_name,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR},
+          #{district_zip,jdbcType=VARCHAR}, #{province_zip,jdbcType=VARCHAR}, #{city_zip,jdbcType=VARCHAR},
+          #{contacts_phone_number,jdbcType=VARCHAR}, #{contacts,jdbcType=VARCHAR}, #{contacts_address,jdbcType=VARCHAR},
+          #{supplier_rate,jdbcType=INTEGER}, #{supplier_status,jdbcType=INTEGER}, #{sell_type_id,jdbcType=INTEGER},
+          #{record_employee_code,jdbcType=VARCHAR}, #{record_employee_name,jdbcType=VARCHAR},
+          #{contacts_code,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="createSellType" parameterType="com.xinshan.model.SellType" useGeneratedKeys="true" keyProperty="sell_type_id">
+        insert into sell_type (sell_type_id, sell_type_name)
+        values (#{sell_type_id,jdbcType=INTEGER}, #{sell_type_name,jdbcType=VARCHAR})
+    </insert>
+
+    <resultMap id="supplierResultMap" type="com.xinshan.model.extend.supplier.SupplierExtend"
+               extends="com.xinshan.dao.SupplierMapper.BaseResultMap">
+        <association property="province" javaType="com.xinshan.model.Province">
+            <result column="province_name" property="province_name"/>
+        </association>
+        <association property="city" javaType="com.xinshan.model.City">
+            <result column="city_name" property="city_name"/>
+        </association>
+        <association property="district" javaType="com.xinshan.model.District">
+            <result column="district_name" property="district_name"/>
+        </association>
+        <association property="sellType" javaType="com.xinshan.model.SellType">
+            <result column="sell_type_name" property="sell_type_name"/>
+        </association>
+        <association property="employee" javaType="com.xinshan.model.Employee">
+            <result column="employee_code" property="employee_code"/>
+            <result column="employee_name" property="employee_name"/>
+        </association>
+    </resultMap>
+    <select id="supplierList" parameterType="com.xinshan.pojo.supplier.SupplierSearchOption" resultMap="supplierResultMap">
+        SELECT * FROM supplier
+        left join province on supplier.province_zip = province.province_zip
+        left join city on supplier.city_zip = city.city_zip
+        left join district on supplier.district_zip = district.district_zip
+        left JOIN sell_type on supplier.sell_type_id = sell_type.sell_type_id
+        left join employee on supplier.contacts_code = employee.employee_code
+        where 1=1
+        <if test="contacts_code != null">
+            and supplier.contacts_code = #{contacts_code}
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="province_zip != null">
+            and supplier.province_zip = #{province_zip}
+        </if>
+        <if test="city_zip != null">
+            and supplier.city_zip = #{city_zip}
+        </if>
+        <if test="district_zip != null">
+            and supplier.district_zip = #{district_zip}
+        </if>
+        <if test="sell_type_id != null">
+            and supplier.sell_type_id=#{sell_type_id}
+        </if>
+        <if test="supplier_name != null">
+            and supplier.supplier_name = #{supplier_name}
+        </if>
+        <if test="supplier_status != null">
+            and supplier.supplier_status = #{supplier_status}
+        </if>
+        <if test="param != null">
+            and (supplier.supplier_name like "%"#{param}"%"
+              or supplier.contacts like "%"#{param}"%")
+        </if>
+        <if test="contacts_param != null">
+            and supplier.contacts like "%"#{contacts_param}"%"
+        </if>
+        <if test="supplier_ids != null">
+            and supplier.supplier_id in
+            <foreach item="item" index="index" collection="supplier_ids"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countSupplier" parameterType="com.xinshan.pojo.supplier.SupplierSearchOption" resultType="java.lang.Integer">
+        SELECT count(*) FROM supplier
+        where 1=1
+        <if test="contacts_code != null">
+            and supplier.contacts_code = #{contacts_code}
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="province_zip != null">
+            and supplier.province_zip = #{province_zip}
+        </if>
+        <if test="city_zip != null">
+            and supplier.city_zip = #{city_zip}
+        </if>
+        <if test="district_zip != null">
+            and supplier.district_zip = #{district_zip}
+        </if>
+        <if test="sell_type_id != null">
+            and supplier.sell_type_id=#{sell_type_id}
+        </if>
+        <if test="supplier_name != null">
+            and supplier.supplier_name = #{supplier_name}
+        </if>
+        <if test="supplier_status != null">
+            and supplier.supplier_status = #{supplier_status}
+        </if>
+        <if test="param != null">
+            and (supplier.supplier_name like "%"#{param}"%"
+            or supplier.contacts like "%"#{param}"%")
+        </if>
+        <if test="contacts_param != null">
+            and supplier.contacts like "%"#{contacts_param}"%"
+        </if>
+        <if test="supplier_ids != null">
+            and supplier.supplier_id in
+            <foreach item="item" index="index" collection="supplier_ids"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <insert id="createSeries" parameterType="com.xinshan.model.SupplierSeries" useGeneratedKeys="true" keyProperty="supplier_series_id">
+        insert into supplier_series (supplier_series_id, series_name,
+          supplier_id, series_status, series_desc
+          )
+        values (#{supplier_series_id,jdbcType=INTEGER}, #{series_name,jdbcType=VARCHAR},
+          #{supplier_id,jdbcType=INTEGER}, #{series_status,jdbcType=INTEGER}, #{series_desc,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <resultMap id="seriesResultMap" type="com.xinshan.model.extend.supplier.SupplierSeriesExtend"
+               extends="com.xinshan.dao.SupplierSeriesMapper.BaseResultMap">
+        <association property="supplier" javaType="com.xinshan.model.Supplier">
+            <result column="supplier_name" property="supplier_name"/>
+        </association>
+    </resultMap>
+    <select id="seriesList" parameterType="com.xinshan.pojo.supplier.SupplierSearchOption" resultMap="seriesResultMap">
+        select * from supplier_series
+        left JOIN supplier on supplier_series.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="supplier_series_id != null">
+            and supplier_series.supplier_series_id = #{supplier_series_id}
+        </if>
+        <if test="supplier_id != null">
+            and supplier_series.supplier_id = #{supplier_id}
+        </if>
+        <if test="series_name != null">
+            and supplier_series.series_name = #{series_name}
+        </if>
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countSeries" parameterType="com.xinshan.pojo.supplier.SupplierSearchOption" resultType="java.lang.Integer">
+        select count(*) from supplier_series
+        where 1=1
+        <if test="supplier_series_id != null">
+            and supplier_series_id = #{supplier_series_id}
+        </if>
+        <if test="supplier_id != null">
+            and supplier_id = #{supplier_id}
+        </if>
+        <if test="series_name != null">
+            and supplier_series.series_name = #{series_name}
+        </if>
+    </select>
+
+    <select id="getSellTypeByName" parameterType="java.lang.String" resultType="com.xinshan.model.SellType">
+        select * from sell_type
+        where sell_type_name = #{sell_type_name}
+    </select>
+
+    <select id="supplierContacts" parameterType="com.xinshan.pojo.supplier.SupplierSearchOption" resultType="java.lang.String">
+        select DISTINCT contacts from supplier
+        where 1=1
+        <if test="param != null">
+            and contacts like "%"#{param}"%"
+        </if>
+    </select>
+
+    <select id="countSupplierContracts" parameterType="com.xinshan.pojo.supplier.SupplierSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT contacts) from supplier
+        where 1=1
+        <if test="param != null">
+            and contacts like "%"#{param}"%"
+        </if>
+    </select>
+</mapper>

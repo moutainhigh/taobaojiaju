@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.inventory.InventoryCheckExtendMapper">
+    <insert id="createInventory" parameterType="com.xinshan.model.Inventory" useGeneratedKeys="true" keyProperty="inventory_id">
+        insert into inventory (inventory_id, create_date, commodity_num_id,
+          inventory_num, commodity_num, profit_status,
+          inventory_employee_code, inventory_employee_name,
+          inventory_carry_over_id, inventory_adjust_status
+          )
+        values (#{inventory_id,jdbcType=INTEGER}, #{create_date,jdbcType=TIMESTAMP}, #{commodity_num_id,jdbcType=INTEGER},
+          #{inventory_num,jdbcType=INTEGER}, #{commodity_num,jdbcType=INTEGER}, #{profit_status,jdbcType=INTEGER},
+          #{inventory_employee_code,jdbcType=VARCHAR}, #{inventory_employee_name,jdbcType=VARCHAR},
+          #{inventory_carry_over_id,jdbcType=INTEGER}, #{inventory_adjust_status,jdbcType=INTEGER}
+          )
+    </insert>
+    <insert id="createInventoryAdjust" parameterType="com.xinshan.model.InventoryAdjust" useGeneratedKeys="true" keyProperty="inventory_adjust_id">
+        insert into inventory_adjust (inventory_adjust_id, inventory_id,
+          inventory_adjust_employee_code, inventory_adjust_employee_name,
+          inventory_adjust_num, inventory_adjust_date,
+          inventory_adjust_before_num, inventory_adjust_remark
+          )
+        values (#{inventory_adjust_id,jdbcType=INTEGER}, #{inventory_id,jdbcType=INTEGER},
+          #{inventory_adjust_employee_code,jdbcType=VARCHAR}, #{inventory_adjust_employee_name,jdbcType=VARCHAR},
+          #{inventory_adjust_num,jdbcType=INTEGER}, #{inventory_adjust_date,jdbcType=TIMESTAMP},
+          #{inventory_adjust_before_num,jdbcType=INTEGER}, #{inventory_adjust_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <insert id="createInventoryCarryOver" parameterType="com.xinshan.model.InventoryCarryOver" useGeneratedKeys="true" keyProperty="inventory_carry_over_id">
+        insert into inventory_carry_over (inventory_carry_over_id, carry_over_employee_code,
+          carry_over_employee_name, carry_over_date,
+          inventory_id)
+        values (#{inventory_carry_over_id,jdbcType=INTEGER}, #{carry_over_employee_code,jdbcType=VARCHAR},
+          #{carry_over_employee_name,jdbcType=VARCHAR}, #{carry_over_date,jdbcType=TIMESTAMP},
+          #{inventory_id,jdbcType=INTEGER})
+    </insert>
+
+    <resultMap id="inventoryResultMap" type="com.xinshan.model.extend.inventory.InventoryExtend"
+               extends="com.xinshan.dao.InventoryMapper.BaseResultMap">
+        <association property="commodityNum" javaType="com.xinshan.model.CommodityNum"
+                     resultMap="com.xinshan.dao.CommodityNumMapper.BaseResultMap"/>
+        <association property="commodityStore" javaType="com.xinshan.model.CommodityStore"
+                     resultMap="com.xinshan.dao.CommodityStoreMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="commodityUnit" javaType="com.xinshan.model.CommodityUnit"
+                     resultMap="com.xinshan.dao.CommodityUnitMapper.BaseResultMap"/>
+        <association property="category" javaType="com.xinshan.model.Category"
+                     resultMap="com.xinshan.dao.CategoryMapper.BaseResultMap"/>
+    </resultMap>
+    <sql id="listColumns">
+        inventory.*,
+        commodity_num.*,
+        commodity_store.*,
+        commodity.commodity_code,commodity.commodity_name,commodity.commodity_size,commodity.sell_price,
+        supplier.supplier_name,supplier.contacts,
+        commodity_unit.unit_name,
+        category.category_name
+    </sql>
+    <select id="inventoryList" parameterType="com.xinshan.pojo.inventory.InventoryCheckSearchOption" resultMap="inventoryResultMap">
+        select
+        <include refid="listColumns"/>
+        from inventory
+        left join commodity_num on commodity_num.commodity_num_id = inventory.commodity_num_id
+        left join commodity_store on commodity_num.commodity_store_id = commodity_store.commodity_store_id
+        left join commodity on commodity_num.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join category on commodity.category_id = category.category_id
+        where 1=1
+        <include refid="inventoryQuery"/>
+        order by inventory.inventory_id asc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countInventory" parameterType="com.xinshan.pojo.inventory.InventoryCheckSearchOption" resultType="java.lang.Integer">
+        select
+        count(DISTINCT inventory.inventory_id)
+        from inventory
+        left join commodity_num on commodity_num.commodity_num_id = inventory.commodity_num_id
+        left join commodity_store on commodity_num.commodity_store_id = commodity_store.commodity_store_id
+        left join commodity on commodity_num.commodity_id = commodity.commodity_id
+        where 1=1
+        <include refid="inventoryQuery"/>
+    </select>
+    <sql id="inventoryQuery">
+        <if test="param != null"><!--  -->
+            and (commodity.commodity_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or inventory.inventory_employee_code like "%"#{param}"%"
+            or inventory.inventory_employee_name like "%"#{param}"%"
+            )
+        </if>
+        <if test="carry_over_status != null"><!-- 结转状态， -->
+            and inventory.inventory_carry_over_id is not null
+        </if>
+        <if test="inventory_id != null"><!-- -->
+            and inventory.inventory_id = #{inventory_id}
+        </if>
+        <if test="supplier_id != null"><!-- -->
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="commodity_store_id != null"><!-- -->
+            and commodity_num.commodity_store_id = #{commodity_store_id}
+        </if>
+        <if test="sample != null"><!-- -->
+            and commodity_num.sample = #{sample}
+        </if>
+        <if test="profit_status != null"><!-- 盈亏状态 -->
+            and inventory.profit_status = #{profit_status}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (inventory.create_date &gt;= #{startDate} and inventory.create_date &lt; #{endDate})
+        </if>
+    </sql>
+</mapper>

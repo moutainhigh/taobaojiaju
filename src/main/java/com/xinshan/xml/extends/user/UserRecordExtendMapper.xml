@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.user.UserRecordExtendMapper">
+    <insert id="createStatus" parameterType="com.xinshan.model.UserStatus" useGeneratedKeys="true" keyProperty="user_status_id">
+        insert into user_status (user_status_id, user_status_name)
+        values (#{user_status_id,jdbcType=INTEGER}, #{user_status_name,jdbcType=VARCHAR})
+    </insert>
+    <insert id="createStage" parameterType="com.xinshan.model.UserStage" useGeneratedKeys="true" keyProperty="user_stage_id">
+        insert into user_stage (user_stage_id, user_stage_name)
+        values (#{user_stage_id,jdbcType=INTEGER}, #{user_stage_name,jdbcType=VARCHAR})
+    </insert>
+    <insert id="createSource" parameterType="com.xinshan.model.UserSource" useGeneratedKeys="true" keyProperty="user_source_id">
+        insert into user_source (user_source_id, user_source_name)
+        values (#{user_source_id,jdbcType=INTEGER}, #{user_source_name,jdbcType=VARCHAR})
+    </insert>
+    <insert id="createRecord" parameterType="com.xinshan.model.UserRecord" useGeneratedKeys="true" keyProperty="user_record_id">
+        insert into user_record (user_record_id, user_id, user_source_id,
+          user_status_id, user_stage_id, record_date,
+          visit_date, record_employee_code, record_employee_name,
+          remark)
+        values (#{user_record_id,jdbcType=INTEGER}, #{user_id,jdbcType=INTEGER}, #{user_source_id,jdbcType=INTEGER},
+          #{user_status_id,jdbcType=INTEGER}, #{user_stage_id,jdbcType=INTEGER}, #{record_date,jdbcType=TIMESTAMP},
+          #{visit_date,jdbcType=TIMESTAMP}, #{record_employee_code,jdbcType=VARCHAR}, #{record_employee_name,jdbcType=VARCHAR},
+          #{remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <resultMap id="recordResultMap" type="com.xinshan.model.extend.user.UserRecordExtend"
+               extends="com.xinshan.dao.UserRecordMapper.BaseResultMap">
+        <association property="user" javaType="com.xinshan.model.User" resultMap="com.xinshan.dao.UserMapper.BaseResultMap">
+
+        </association>
+        <association property="userSource" javaType="com.xinshan.model.UserSource">
+            <result column="user_source_name" property="user_source_name"/>
+        </association>
+        <association property="userStage" javaType="com.xinshan.model.UserStage">
+            <result column="user_stage_name" property="user_stage_name"/>
+        </association>
+        <association property="userStatus" javaType="com.xinshan.model.UserStatus">
+            <result column="user_status_name" property="user_status_name"/>
+        </association>
+    </resultMap>
+    <select id="recordList" parameterType="com.xinshan.pojo.user.UserSearchOption" resultMap="recordResultMap">
+        select * from user_record
+        left join `user` on user_record.user_id = `user`.user_id
+        left join user_status on user_record.user_status_id = user_status.user_status_id
+        left join user_stage on user_record.user_stage_id = user_stage.user_stage_id
+        LEFT JOIN user_source on user_record.user_source_id = user_source.user_source_id
+        where 1=1
+        <if test="user_id != null">
+            and user_record.user_id = #{user_id}
+        </if>
+        <if test="user_status_id != null">
+            and user_record.user_status_id = #{user_status_id}
+        </if>
+        <if test="user_stage_id != null">
+            and user_record.user_stage_id = #{user_stage_id}
+        </if>
+        <if test="user_source_id != null">
+            and user_record.user_source_id = #{user_source_id}
+        </if>
+        <if test="record_employee_code != null">
+            and user_record.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and `user`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by user_record.record_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countRecord" parameterType="com.xinshan.pojo.user.UserSearchOption" resultType="java.lang.Integer">
+        select count(*) from user_record
+        left join `user` on user_record.user_id = `user`.user_id
+        left join user_status on user_record.user_status_id = user_status.user_status_id
+        left join user_stage on user_record.user_stage_id = user_stage.user_stage_id
+        LEFT JOIN user_source on user_record.user_source_id = user_source.user_source_id
+        where 1=1
+        <if test="user_id != null">
+            and user_record.user_id = #{user_id}
+        </if>
+        <if test="user_status_id != null">
+            and user_record.user_status_id = #{user_status_id}
+        </if>
+        <if test="user_stage_id != null">
+            and user_record.user_stage_id = #{user_stage_id}
+        </if>
+        <if test="user_source_id != null">
+            and user_record.user_source_id = #{user_source_id}
+        </if>
+        <if test="record_employee_code != null">
+            and user_record.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and `user`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

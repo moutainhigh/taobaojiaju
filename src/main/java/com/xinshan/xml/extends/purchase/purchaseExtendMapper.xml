@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.purchase.PurchaseExtendMapper">
+    <insert id="createPurchase" parameterType="com.xinshan.model.Purchase" useGeneratedKeys="true" keyProperty="purchase_id">
+        insert into purchase (purchase_id, supplier_id, purchase_code,
+          order_id, purchase_complete_date, purchase_start_date,
+          purchase_status, record_employee_code,
+          record_employee_name, estimate_arrival_date,
+          order_return_id, purchase_type, gift_id,
+          purchase_remark)
+        values (#{purchase_id,jdbcType=INTEGER}, #{supplier_id,jdbcType=INTEGER}, #{purchase_code,jdbcType=VARCHAR},
+          #{order_id,jdbcType=INTEGER}, #{purchase_complete_date,jdbcType=TIMESTAMP}, #{purchase_start_date,jdbcType=TIMESTAMP},
+          #{purchase_status,jdbcType=INTEGER}, #{record_employee_code,jdbcType=VARCHAR},
+          #{record_employee_name,jdbcType=VARCHAR}, #{estimate_arrival_date,jdbcType=TIMESTAMP},
+          #{order_return_id,jdbcType=INTEGER}, #{purchase_type,jdbcType=INTEGER}, #{gift_id,jdbcType=INTEGER},
+          #{purchase_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="createPurchaseCommodity" parameterType="com.xinshan.model.PurchaseCommodity" useGeneratedKeys="true" keyProperty="purchase_commodity_id">
+        insert into purchase_commodity (purchase_commodity_id, purchase_id,
+          purchase_num, purchase_unit_price, purchase_total_price,
+          purchase_unit_cost_price, purchase_cost_price,
+          purchase_arrival_num, commodity_id, sample,
+          purchase_commodity_status, inventory_in_num,
+          confirm_purchase_employee_code, confirm_purchase_employee_name,
+          check_purchase_employee_code, check_purchase_employee_name,
+          confirm_purchase_employee_date, check_purchase_employee_date,
+          order_commodity_id, purchase_commodity_type,
+          gift_commodity_id, purchase_commodity_remark,
+          no_purchase_remark)
+        values (#{purchase_commodity_id,jdbcType=INTEGER}, #{purchase_id,jdbcType=INTEGER},
+          #{purchase_num,jdbcType=INTEGER}, #{purchase_unit_price,jdbcType=DECIMAL}, #{purchase_total_price,jdbcType=DECIMAL},
+          #{purchase_unit_cost_price,jdbcType=DECIMAL}, #{purchase_cost_price,jdbcType=DECIMAL},
+          #{purchase_arrival_num,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER}, #{sample,jdbcType=INTEGER},
+          #{purchase_commodity_status,jdbcType=INTEGER}, #{inventory_in_num,jdbcType=INTEGER},
+          #{confirm_purchase_employee_code,jdbcType=VARCHAR}, #{confirm_purchase_employee_name,jdbcType=VARCHAR},
+          #{check_purchase_employee_code,jdbcType=VARCHAR}, #{check_purchase_employee_name,jdbcType=VARCHAR},
+          #{confirm_purchase_employee_date,jdbcType=TIMESTAMP}, #{check_purchase_employee_date,jdbcType=TIMESTAMP},
+          #{order_commodity_id,jdbcType=INTEGER}, #{purchase_commodity_type,jdbcType=INTEGER},
+          #{gift_commodity_id,jdbcType=INTEGER}, #{purchase_commodity_remark,jdbcType=LONGVARCHAR},
+          #{no_purchase_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <select id="purchaseCode" resultType="java.lang.String">
+        select max(purchase_code) from purchase where purchase_code regexp "P"+#{dateStr}+"[0-9]{3}"
+    </select>
+
+    <select id="purchaseIds" parameterType="com.xinshan.pojo.purchase.PurchaseSearchOption" resultType="java.lang.Integer">
+        select DISTINCT purchase.purchase_id from purchase
+        left join purchase_commodity on purchase.purchase_id = purchase_commodity.purchase_id
+        left join order_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join commodity on purchase_commodity.commodity_id = commodity.commodity_id
+        left join supplier on purchase.supplier_id = supplier.supplier_id
+        left join `order` on purchase.order_id = `order`.order_id
+        left join gift on gift.gift_id = purchase.gift_id
+        left join user on user.user_id = gift.user_id
+        where 1=1
+        <include refid="purchaseQuery"/>
+        order by purchase.purchase_complete_date asc, purchase.purchase_code desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="purchaseQuery">
+        <if test="param != null">
+            and (
+            purchase.purchase_code like "%"#{param}"%"
+            or `order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or user.user_name like "%"#{param}"%"
+            or user.user_phone like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or gift.gift_code like "%"#{param}"%"
+            )
+        </if>
+        <if test="commodity_id != null">
+            and purchase_commodity.commodity_id = #{commodity_id}
+        </if>
+        <if test="purchase_id != null">
+            and purchase.purchase_id = #{purchase_id}
+        </if>
+        <if test="purchase_code != null">
+            and purchase.purchase_code = #{purchase_code}
+        </if>
+        <if test="supplier_id != null">
+            and purchase.supplier_id = #{supplier_id}
+        </if>
+        <if test="order_id != null">
+            and purchase.order_id = #{order_id}
+        </if>
+        <if test="order_code != null">
+            and `order`.order_code = #{order_code}
+        </if>
+        <if test="purchase_commodity_status != null">
+            and purchase_commodity.purchase_commodity_status=#{purchase_commodity_status}
+        </if>
+        <if test="purchase_type != null">
+            and purchase.purchase_type = #{purchase_type}
+        </if>
+        <if test="return_commodity != null">
+            <choose>
+                <when test="return_commodity == 1">
+                    and order_commodity.order_commodity_return_num &gt; 0
+                </when>
+                <when test="return_commodity == 0">
+                    and (order_commodity.order_commodity_return_num is null or order_commodity.order_commodity_return_num = 0)
+                </when>
+            </choose>
+
+        </if>
+    </sql>
+    <select id="countPurchase" parameterType="com.xinshan.pojo.purchase.PurchaseSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT purchase.purchase_id) from purchase
+        left join purchase_commodity on purchase.purchase_id = purchase_commodity.purchase_id
+        left join order_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join commodity on purchase_commodity.commodity_id = commodity.commodity_id
+        left join supplier on purchase.supplier_id = supplier.supplier_id
+        left join `order` on purchase.order_id = `order`.order_id
+        left join gift on gift.gift_id = purchase.gift_id
+        left join user on user.user_id = gift.user_id
+        where 1=1
+        <include refid="purchaseQuery"/>
+    </select>
+
+    <resultMap id="purchaseResultMap" type="com.xinshan.model.extend.purchase.PurchaseExtend"
+               extends="com.xinshan.dao.PurchaseMapper.BaseResultMap">
+        <association property="order" javaType="com.xinshan.model.Order">
+            <result property="order_code" column="order_code"/>
+            <result property="customer_name" column="customer_name"/>
+            <result property="customer_phone_number" column="customer_phone_number"/>
+            <result property="employee_code" column="employee_code"/>
+            <result property="employee_name" column="employee_name"/>
+        </association>
+        <association property="supplier" javaType="com.xinshan.model.Supplier">
+            <result column="supplier_name" jdbcType="VARCHAR" property="supplier_name" />
+        </association>
+        <association property="gift" javaType="com.xinshan.model.Gift">
+            <result column="gift_code" jdbcType="VARCHAR" property="gift_code" />
+        </association>
+        <association property="user" javaType="com.xinshan.model.User">
+            <result column="user_name" jdbcType="VARCHAR" property="user_name" />
+        </association>
+        <collection property="purchaseCommodities" ofType="com.xinshan.model.extend.purchase.PurchaseCommodityExtend">
+            <id column="purchase_commodity_id" jdbcType="INTEGER" property="purchase_commodity_id" />
+            <result column="purchase_id" jdbcType="INTEGER" property="purchase_id" />
+            <result column="purchase_num" jdbcType="INTEGER" property="purchase_num" />
+            <result column="purchase_unit_price" jdbcType="DECIMAL" property="purchase_unit_price" />
+            <result column="purchase_total_price" jdbcType="DECIMAL" property="purchase_total_price" />
+            <result column="purchase_unit_cost_price" jdbcType="DECIMAL" property="purchase_unit_cost_price" />
+            <result column="purchase_cost_price" jdbcType="DECIMAL" property="purchase_cost_price" />
+            <result column="purchase_arrival_num" jdbcType="INTEGER" property="purchase_arrival_num" />
+            <result column="commodity_id" jdbcType="INTEGER" property="commodity_id" />
+            <result column="sample" jdbcType="INTEGER" property="sample" />
+            <result column="purchase_commodity_status" jdbcType="INTEGER" property="purchase_commodity_status" />
+            <result column="inventory_in_num" jdbcType="INTEGER" property="inventory_in_num" />
+            <result column="confirm_purchase_employee_code" jdbcType="VARCHAR" property="confirm_purchase_employee_code" />
+            <result column="confirm_purchase_employee_name" jdbcType="VARCHAR" property="confirm_purchase_employee_name" />
+            <result column="check_purchase_employee_code" jdbcType="VARCHAR" property="check_purchase_employee_code" />
+            <result column="check_purchase_employee_name" jdbcType="VARCHAR" property="check_purchase_employee_name" />
+            <result column="confirm_purchase_employee_date" jdbcType="TIMESTAMP" property="confirm_purchase_employee_date" />
+            <result column="check_purchase_employee_date" jdbcType="TIMESTAMP" property="check_purchase_employee_date" />
+            <result column="order_commodity_id" jdbcType="INTEGER" property="order_commodity_id" />
+            <result column="purchase_commodity_type" jdbcType="INTEGER" property="purchase_commodity_type" />
+            <result column="purchase_commodity_remark" jdbcType="LONGVARCHAR" property="purchase_commodity_remark" />
+            <result column="no_purchase_remark" jdbcType="LONGVARCHAR" property="no_purchase_remark" />
+        </collection>
+    </resultMap>
+
+    <select id="purchaseList" parameterType="com.xinshan.pojo.purchase.PurchaseSearchOption" resultMap="purchaseResultMap">
+        select * from purchase
+        left join purchase_commodity on purchase.purchase_id = purchase_commodity.purchase_id
+        LEFT JOIN supplier on purchase.supplier_id = supplier.supplier_id
+        left join `order` on purchase.order_id = `order`.order_id
+        left join gift on gift.gift_id = purchase.gift_id
+        left join user on user.user_id = gift.user_id
+        WHERE 1=1
+        <if test="purchaseIds">
+            and purchase.purchase_id in
+            <foreach item="item" index="index" collection="purchaseIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by purchase.purchase_complete_date asc,purchase.purchase_code desc
+    </select>
+
+    <update id="purchaseStatus" parameterType="com.xinshan.model.Purchase">
+        update purchase set purchase_status = #{purchase_status},purchase_complete_date = #{purchase_complete_date}  where purchase_id = #{purchase_id}
+    </update>
+
+    <insert id="createPurchaseCommodityArrival" parameterType="com.xinshan.model.PurchaseCommodityArrival"
+            useGeneratedKeys="true" keyProperty="purchase_commodity_arrival_id">
+        insert into purchase_commodity_arrival (purchase_commodity_arrival_id, purchase_commodity_id,
+          purchase_commodity_arrival_date, arrival_employee_code,
+          arrival_employee_name, purchase_commodity_arrival_num,
+          purchase_commodity_arrival_remark)
+        values (#{purchase_commodity_arrival_id,jdbcType=INTEGER}, #{purchase_commodity_id,jdbcType=INTEGER},
+          #{purchase_commodity_arrival_date,jdbcType=TIMESTAMP}, #{arrival_employee_code,jdbcType=VARCHAR},
+          #{arrival_employee_name,jdbcType=VARCHAR}, #{purchase_commodity_arrival_num,jdbcType=INTEGER},
+          #{purchase_commodity_arrival_remark,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="getPurchaseCommodityByOrderCommodityId" resultType="com.xinshan.model.PurchaseCommodity">
+        select * from purchase_commodity where order_commodity_id = #{order_commodity_id}
+    </select>
+
+    <select id="getPurchaseCommodityByGiftCommodityId" resultType="com.xinshan.model.PurchaseCommodity">
+        select * from purchase_commodity where gift_commodity_id = #{gift_commodity_id}
+    </select>
+
+    <resultMap id="purchaseReportsResultMap" type="com.xinshan.model.extend.purchase.PurchaseReports"
+               extends="com.xinshan.dao.PurchaseCommodityMapper.BaseResultMap">
+        <association property="purchase" javaType="com.xinshan.model.Purchase" resultMap="com.xinshan.dao.PurchaseMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order" resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="orderCommodity" javaType="com.xinshan.model.OrderCommodity" resultMap="com.xinshan.dao.OrderCommodityMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity" resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier" resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="purchaseReportses" parameterType="com.xinshan.pojo.purchase.PurchaseSearchOption" resultMap="purchaseReportsResultMap">
+        select * from purchase_commodity
+        left join purchase on purchase_commodity.purchase_id = purchase.purchase_id
+        LEFT JOIN `order` on purchase.order_id = `order`.order_id
+        LEFT JOIN order_commodity on purchase_commodity.order_commodity_id = order_commodity.order_commodity_id
+        LEFT JOIN commodity on purchase_commodity.commodity_id = commodity.commodity_id
+        LEFT JOIN supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="purchase_id != null">
+            and purchase_commodity.purchase_id = #{purchase_id}
+        </if>
+        <if test="purchase_code != null">
+            and purchase.purchase_code = #{purchase_code}
+        </if>
+        <if test="employee_code != null">
+            and (purchase_commodity.confirm_purchase_employee_code = #{employee_code} or purchase_commodity.check_purchase_employee_code = #{employee_code})
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate!= null and endDate != null">
+            and (purchase.purchase_start_date &gt;= #{startDate} and purchase.purchase_start_date &lt;= #{endDate})
+        </if>
+        <if test="statuses != null">
+            and find_in_set(purchase_commodity.purchase_commodity_status,#{statuses})
+        </if>
+        order by purchase_commodity.confirm_purchase_employee_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countPurchaseReports" parameterType="com.xinshan.pojo.purchase.PurchaseSearchOption" resultType="java.lang.Integer">
+        select count(*) from purchase_commodity
+        left join purchase on purchase_commodity.purchase_id = purchase.purchase_id
+        LEFT JOIN `order` on purchase.order_id = `order`.order_id
+        LEFT JOIN order_commodity on purchase_commodity.order_commodity_id = order_commodity.order_commodity_id
+        LEFT JOIN commodity on purchase_commodity.commodity_id = commodity.commodity_id
+        LEFT JOIN supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="purchase_id != null">
+            and purchase_commodity.purchase_id = #{purchase_id}
+        </if>
+        <if test="purchase_code != null">
+            and purchase.purchase_code = #{purchase_code}
+        </if>
+        <if test="employee_code != null">
+            and (purchase_commodity.confirm_purchase_employee_code = #{employee_code} or purchase_commodity.check_purchase_employee_code = #{employee_code})
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate!= null and endDate != null">
+            and (purchase.purchase_start_date &gt;= #{startDate} and purchase.purchase_start_date &lt;= #{endDate})
+        </if>
+        <if test="statuses != null">
+            and find_in_set(purchase_commodity.purchase_commodity_status,#{statuses})
+        </if>
+    </select>
+
+    <select id="purchaseReportsStatistics" parameterType="com.xinshan.pojo.purchase.PurchaseSearchOption" resultType="java.util.Map">
+        select
+        sum(purchase_commodity.purchase_num) as purchase_num
+        ,sum(purchase_commodity.purchase_total_price) as purchase_total_price
+        from purchase_commodity
+        left join purchase on purchase_commodity.purchase_id = purchase.purchase_id
+        LEFT JOIN `order` on purchase.order_id = `order`.order_id
+        LEFT JOIN order_commodity on purchase_commodity.order_commodity_id = order_commodity.order_commodity_id
+        LEFT JOIN commodity on purchase_commodity.commodity_id = commodity.commodity_id
+        LEFT JOIN supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="purchase_id != null">
+            and purchase_commodity.purchase_id = #{purchase_id}
+        </if>
+        <if test="purchase_code != null">
+            and purchase.purchase_code = #{purchase_code}
+        </if>
+        <if test="employee_code != null">
+            and (purchase_commodity.confirm_purchase_employee_code = #{employee_code} or purchase_commodity.check_purchase_employee_code = #{employee_code})
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate!= null and endDate != null">
+            and (purchase.purchase_start_date &gt;= #{startDate} and purchase.purchase_start_date &lt;= #{endDate})
+        </if>
+        <if test="statuses != null">
+            and find_in_set(purchase_commodity.purchase_commodity_status,#{statuses})
+        </if>
+    </select>
+
+    <select id="purchaseInventoryIn" resultType="com.xinshan.model.extend.purchase.PurchaseInCommodity">
+        select
+        inventory_in_commodity.confirm_in_date as confirm_in_date
+        ,inventory_in.inventory_in_code as inventory_in_code
+        from inventory_in_commodity
+        left join inventory_in on inventory_in_commodity.inventory_in_id = inventory_in.inventory_in_id
+        where inventory_in_commodity.purchase_commodity_id = #{purchase_commodity_id}
+    </select>
+</mapper>

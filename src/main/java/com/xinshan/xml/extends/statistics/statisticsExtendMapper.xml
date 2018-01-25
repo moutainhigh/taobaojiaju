@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.statistics.StatisticsExtendMapper">
+
+    <resultMap id="commoditySaleRankResultMap" type="com.xinshan.model.extend.statistics.SaleRank">
+        <result javaType="java.lang.Integer" property="commodity_id" column="commodity_id"/>
+        <result javaType="java.lang.String" property="commodity_name" column="commodity_name"/>
+        <result javaType="java.lang.Integer" property="commodity_num" column="commodity_num"/>
+        <result javaType="java.math.BigDecimal" property="commodity_total_price" column="commodity_total_price"/>
+    </resultMap>
+    <select id="commoditySaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultMap="commoditySaleRankResultMap">
+        select
+        order_commodity.commodity_id as commodity_id
+        ,commodity.commodity_name as commodity_name
+        ,sum(order_commodity.commodity_num) as commodity_num
+        ,sum(order_commodity.commodity_total_price) as commodity_total_price
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        group by order_commodity.commodity_id
+        order by commodity_total_price desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countCommoditySaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption" resultType="java.lang.Integer">
+        select
+        count(DISTINCT order_commodity.commodity_id)
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+    </select>
+
+    <select id="employeeSaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="com.xinshan.model.extend.statistics.SaleRank">
+        select
+        `order`.employee_code as employee_code
+        ,`order`.employee_name as employee_name
+        ,sum(order_commodity.commodity_num) as commodity_num
+        ,sum(order_commodity.commodity_total_price) as commodity_total_price
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="position_id != null">
+            and `order`.position_id = #{position_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        group by `order`.employee_code
+        order by commodity_total_price desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countEmployeeSaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="java.lang.Integer">
+        select
+        count(DISTINCT `order`.employee_code)
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="position_id != null">
+            and `order`.position_id = #{position_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+    </select>
+
+    <select id="positionSaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="com.xinshan.model.extend.statistics.SaleRank">
+        select
+        `order`.position_id as position_id
+        ,`position`.position_name as position_name
+        ,sum(order_commodity.commodity_num) as commodity_num
+        ,sum(order_commodity.commodity_total_price) as commodity_total_price
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        left join `position` on `order`.position_id = `position`.position_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        group by `order`.position_id
+        order by commodity_total_price desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countPositionSaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="java.lang.Integer">
+        select
+        count(DISTINCT `order`.position_id)
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        left join `position` on `order`.position_id = `position`.position_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+    </select>
+
+    <select id="supplierSaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="com.xinshan.model.extend.statistics.SaleRank">
+        select
+        commodity.supplier_id as supplier_id
+        ,supplier.supplier_name as supplier_name
+        ,sum(order_commodity.commodity_num) as commodity_num
+        ,sum(order_commodity.commodity_total_price) as commodity_total_price
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        group by commodity.supplier_id
+        order by commodity_total_price desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countSupplierSaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="java.lang.Integer">
+        select
+        count(DISTINCT commodity.supplier_id)
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+    </select>
+
+    <select id="categorySaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="com.xinshan.model.extend.statistics.SaleRank">
+        select
+        category.category_id as category_id
+        ,category.category_name as category_name
+        ,sum(order_commodity.commodity_num) as commodity_num
+        ,sum(order_commodity.commodity_total_price) as commodity_total_price
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join category on commodity.category_id = category.category_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        group by commodity.category_id
+        order by commodity_total_price desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countCategorySaleRank" parameterType="com.xinshan.pojo.statistics.StatisticsSearchOption"
+            resultType="java.lang.Integer">
+        select
+        count(DISTINCT commodity.category_id)
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join category on commodity.category_id = category.category_id
+        left join `order` on `order`.order_id = order_commodity.order_id
+        WHERE 1=1
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`order`.order_date &gt;= #{startDate} and `order`.order_date &lt;= #{endDate})
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+    </select>
+</mapper>

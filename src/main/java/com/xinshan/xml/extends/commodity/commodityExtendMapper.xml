@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.commodity.CommodityExtendMapper" >
+    <insert id="createColor" parameterType="com.xinshan.model.CommodityColor" useGeneratedKeys="true" keyProperty="commodity_color_id">
+        insert into commodity_color (commodity_color_id, color_name)
+        values (#{commodity_color_id,jdbcType=INTEGER}, #{color_name,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="createUnit" parameterType="com.xinshan.model.CommodityUnit" useGeneratedKeys="true" keyProperty="commodity_unit_id">
+        insert into commodity_unit (commodity_unit_id, unit_name
+          )
+        values (#{commodity_unit_id,jdbcType=INTEGER}, #{unit_name,jdbcType=VARCHAR}
+          )
+    </insert>
+
+    <insert id="createNum" parameterType="com.xinshan.model.CommodityNum" useGeneratedKeys="true" keyProperty="commodity_num_id">
+        insert into commodity_num (commodity_num_id, commodity_id, num,
+          commodity_store_id, sample)
+        values (#{commodity_num_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER}, #{num,jdbcType=INTEGER},
+          #{commodity_store_id,jdbcType=INTEGER}, #{sample,jdbcType=INTEGER})
+    </insert>
+    <select id="maxSupplierCommodityCode" resultType="java.lang.String">
+        select max(cast(supplier_commodity_code as signed)) from commodity
+    </select>
+    <insert id="createCommodity" parameterType="com.xinshan.model.Commodity" useGeneratedKeys="true" keyProperty="commodity_id">
+        insert into commodity (commodity_id, supplier_commodity_code,
+          commodity_code, bar_code, commodity_name,
+          supplier_id, purchase_price, sell_price,
+          commodity_freight, category_id, commodity_color_id,
+          commodity_unit_id, commodity_size, record_employee_code,
+          record_employee_name, commodity_brand,
+          supplier_series_id, record_date, sichuan,
+          qrcode, commodity_sample, guangdong,
+          commodity_status, edit_employee_code, edit_employee_name,
+          edit_date, activity_commodity_id, bar_code_img,
+          commodity_img, commodity_remark
+          )
+        values (#{commodity_id,jdbcType=INTEGER}, #{supplier_commodity_code,jdbcType=VARCHAR},
+          #{commodity_code,jdbcType=VARCHAR}, #{bar_code,jdbcType=VARCHAR}, #{commodity_name,jdbcType=VARCHAR},
+          #{supplier_id,jdbcType=INTEGER}, #{purchase_price,jdbcType=DECIMAL}, #{sell_price,jdbcType=DECIMAL},
+          #{commodity_freight,jdbcType=DECIMAL}, #{category_id,jdbcType=INTEGER}, #{commodity_color_id,jdbcType=INTEGER},
+          #{commodity_unit_id,jdbcType=INTEGER}, #{commodity_size,jdbcType=VARCHAR}, #{record_employee_code,jdbcType=VARCHAR},
+          #{record_employee_name,jdbcType=VARCHAR}, #{commodity_brand,jdbcType=VARCHAR},
+          #{supplier_series_id,jdbcType=INTEGER}, #{record_date,jdbcType=TIMESTAMP}, #{sichuan,jdbcType=INTEGER},
+          #{qrcode,jdbcType=VARCHAR}, #{commodity_sample,jdbcType=INTEGER}, #{guangdong,jdbcType=INTEGER},
+          #{commodity_status,jdbcType=INTEGER}, #{edit_employee_code,jdbcType=VARCHAR}, #{edit_employee_name,jdbcType=VARCHAR},
+          #{edit_date,jdbcType=TIMESTAMP}, #{activity_commodity_id,jdbcType=INTEGER}, #{bar_code_img,jdbcType=LONGVARCHAR},
+          #{commodity_img,jdbcType=LONGVARCHAR}, #{commodity_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <select id="units" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="com.xinshan.model.CommodityUnit">
+        select * from commodity_unit
+    </select>
+    <select id="colors" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="com.xinshan.model.CommodityColor">
+        select * from commodity_color
+        where 1=1
+        <if test="color_name != null">
+            and color_name = #{color_name}
+        </if>
+    </select>
+
+
+    <resultMap id="commodityResultMap" type="com.xinshan.model.extend.commodity.CommodityExtend"
+               extends="com.xinshan.dao.CommodityMapper.BaseResultMap">
+        <association property="category" javaType="com.xinshan.model.Category">
+            <result column="category_name" property="category_name"/>
+        </association>
+        <association property="commodityColor" javaType="com.xinshan.model.CommodityColor">
+            <result column="color_name" property="color_name"/>
+        </association>
+        <association property="commodityUnit" javaType="com.xinshan.model.CommodityUnit">
+            <result column="unit_name" property="unit_name"/>
+        </association>
+        <association property="supplier" javaType="com.xinshan.model.Supplier">
+            <result column="supplier_name" property="supplier_name"/>
+            <result column="contacts" property="contacts"/>
+        </association>
+        <association property="supplierSeries" javaType="com.xinshan.model.SupplierSeries">
+            <result column="series_name" property="series_name"/>
+        </association>
+    </resultMap>
+    <select id="commodityList" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultMap="commodityResultMap">
+        select * from commodity
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity.commodity_color_id = commodity_color.commodity_color_id
+        left join category on commodity.category_id = category.category_id
+        left join supplier on supplier.supplier_id = commodity.supplier_id
+        left join activity_commodity on activity_commodity.activity_commodity_id = commodity.activity_commodity_id
+        left join activity on activity.activity_id = activity_commodity.activity_id
+        where 1=1
+        <include refid="commodityListQuery"/>
+        <choose>
+            <when test="sell_price_order == null">
+                order by commodity.commodity_status desc, commodity.commodity_id desc
+            </when>
+            <when test="sell_price_order == 0">
+                order by commodity.commodity_status desc, commodity.sell_price asc
+            </when>
+            <when test="sell_price_order == 1">
+                order by commodity.commodity_status desc, commodity.sell_price desc
+            </when>
+        </choose>
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="commodityExport" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="java.util.HashMap">
+        select commodity.supplier_commodity_code as supplier_commodity_code,
+        commodity.commodity_code as commodity_code,
+        commodity.commodity_name as commodity_name,
+        supplier.supplier_name as supplier_name,
+        supplier.contacts as contacts,
+        commodity_color.color_name as color_name,
+        commodity.commodity_size as commodity_size,
+        commodity.purchase_price as purchase_price,
+        commodity.sell_price as sell_price,
+        commodity.commodity_freight as commodity_freight
+        from commodity
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity.commodity_color_id = commodity_color.commodity_color_id
+        left join category on commodity.category_id = category.category_id
+        left join supplier on supplier.supplier_id = commodity.supplier_id
+        where 1=1
+        <include refid="commodityListQuery"/>
+        <choose>
+            <when test="sell_price_order == null">
+                order by commodity.commodity_status desc, commodity.commodity_id desc
+            </when>
+            <when test="sell_price_order == 0">
+                order by commodity.commodity_status desc, commodity.sell_price asc
+            </when>
+            <when test="sell_price_order == 1">
+                order by commodity.commodity_status desc, commodity.sell_price desc
+            </when>
+        </choose>
+    </select>
+
+    <select id="countCommodity" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="java.lang.Integer">
+        select count(*) from commodity
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity.commodity_color_id = commodity_color.commodity_color_id
+        left join category on commodity.category_id = category.category_id
+        left join activity_commodity on activity_commodity.activity_commodity_id = commodity.activity_commodity_id
+        left join activity on activity.activity_id = activity_commodity.activity_id
+        where 1=1
+        <include refid="commodityListQuery"/>
+    </select>
+
+    <sql id="commodityListQuery">
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            or commodity.supplier_commodity_code like "%"#{param}"%")
+        </if>
+        <if test="commodity_id != null">
+            and commodity.commodity_id=#{commodity_id}
+        </if>
+        <if test="commodity_unit_id != null">
+            and commodity.commodity_unit_id=#{commodity_unit_id}
+        </if>
+        <if test="commodity_color_id != null">
+            and commodity.commodity_color_id=#{commodity_color_id}
+        </if>
+        <if test="commodity_store_id != null">
+            and commodity.commodity_store_id=#{commodity_store_id}
+        </if>
+        <if test="commodity_code != null">
+            and commodity.commodity_code=#{commodity_code}
+        </if>
+        <if test="commodity_ids != null">
+            and find_in_set(commodity.commodity_id, #{commodity_ids})
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="commodity_status != null">
+            and commodity.commodity_status = #{commodity_status}
+        </if>
+        <if test="sichuan != null">
+            and commodity.sichuan = #{sichuan}
+        </if>
+        <if test="supplierIds != null">
+            and find_in_set(commodity.supplier_id, #{supplierIds})
+        </if>
+        <if test="adjust_price != null">
+            <choose>
+                <when test="adjust_price == 1">
+                    and (select count(*) from commodity_price_adjust_detail
+                    where commodity_price_adjust_detail.commodity_id=commodity.commodity_id
+                    and commodity_price_adjust_detail.price_adjust_check_status = 1
+                    and commodity_price_adjust_detail.price_adjust_enable = 1
+                    <if test="startDate != null and endDate != null">
+                        and (commodity_price_adjust_detail.price_adjust_check_date &gt;= #{startDate}
+                        and commodity_price_adjust_detail.price_adjust_check_date &lt; #{endDate})
+                    </if>
+                    ) &gt; 0
+                </when>
+                <when test="adjust_price == 0">
+                    and (select count(*) from commodity_price_adjust_detail
+                    where commodity_price_adjust_detail.commodity_id=commodity.commodity_id
+                    and commodity_price_adjust_detail.price_adjust_check_status = 1
+                    and commodity_price_adjust_detail.price_adjust_enable = 1
+                    <if test="startDate != null and endDate != null">
+                        and (commodity_price_adjust_detail.price_adjust_check_date &gt;= #{startDate}
+                        and commodity_price_adjust_detail.price_adjust_check_date &lt; #{endDate})
+                    </if>
+                    ) = 0
+                </when>
+            </choose>
+        </if>
+        <if test="commodityIdList != null and supplierIdList != null and supplierSeriesList != null">
+            and (
+            commodity.commodity_id in
+            <foreach item="commodity_id" index="index" collection="commodityIdList"  open="(" separator="," close=")">
+                #{commodity_id}
+            </foreach>
+            or
+            commodity.supplier_id in
+            <foreach item="supplier_id" index="index" collection="supplierIdList"  open="(" separator="," close=")">
+                #{supplier_id}
+            </foreach>
+            or
+            commodity.supplier_series_id in
+            <foreach item="supplier_series_id" index="index" collection="supplierSeriesList"  open="(" separator="," close=")">
+                #{supplier_series_id}
+            </foreach>
+            )
+        </if>
+        <if test="activity_price != null and activity_price == 1">
+            and (activity.activity_start_date &lt;= now() and activity.activity_end_date &gt;= now())
+        </if>
+        <if test="activity_price != null and activity_price == 0">
+            and (commodity.activity_commodity_id is null or activity.activity_start_date &gt; now() or activity.activity_end_date &lt; now())
+        </if>
+    </sql>
+
+    <select id="commodityEasyList" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultMap="commodityResultMap">
+        select commodity.commodity_id,commodity.commodity_name,commodity.commodity_code
+        ,commodity.purchase_price,commodity.sell_price,commodity.commodity_status,commodity.sichuan
+        ,supplier.supplier_name
+        from commodity
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity.commodity_color_id = commodity_color.commodity_color_id
+        left join category on commodity.category_id = category.category_id
+        left join supplier on supplier.supplier_id = commodity.supplier_id
+        where 1=1
+        <include refid="commodityListQuery"/>
+        <choose>
+            <when test="sell_price_order == null">
+                order by commodity.commodity_status desc, commodity.commodity_id desc
+            </when>
+            <when test="sell_price_order == 0">
+                order by commodity.commodity_status desc, commodity.sell_price asc
+            </when>
+            <when test="sell_price_order == 1">
+                order by commodity.commodity_status desc, commodity.sell_price desc
+            </when>
+        </choose>
+    </select>
+
+    <select id="commodityAttributes" parameterType="java.lang.Integer" resultType="com.xinshan.model.CommodityAttribute">
+        select * from commodity_attribute where commodity_id = #{commodity_id}
+    </select>
+    <delete id="deleteCommodityAttribute" parameterType="java.lang.Integer">
+        delete from commodity_attribute where commodity_id = #{commodity_id}
+    </delete>
+    <insert id="createCommodityAttribute" parameterType="com.xinshan.model.CommodityAttribute" useGeneratedKeys="true" keyProperty="commodity_attribute_id">
+        insert into commodity_attribute (commodity_attribute_id, commodity_id,
+          category_attribute_id, commodity_attribute_name,
+          commodity_attribute_value)
+        values (#{commodity_attribute_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER},
+          #{category_attribute_id,jdbcType=INTEGER}, #{commodity_attribute_name,jdbcType=VARCHAR},
+          #{commodity_attribute_value,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateCommodityQrcode" parameterType="com.xinshan.model.Commodity">
+        update commodity set qrcode = #{qrcode} where commodity_id = #{commodity_id}
+    </update>
+
+    <select id="getCommodityByQRCode" parameterType="java.lang.String" resultMap="commodityResultMap">
+        select
+        commodity.commodity_code,commodity.commodity_id,commodity.sell_price,commodity.commodity_size,
+        commodity.commodity_brand,commodity.commodity_status,commodity.supplier_commodity_code,
+        commodity.commodity_name,commodity.commodity_remark
+        ,commodity_unit.unit_name
+        ,commodity_color.color_name
+        ,category.category_name
+        ,supplier.supplier_name
+        from commodity
+        left join commodity_unit on commodity.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity.commodity_color_id = commodity_color.commodity_color_id
+        left join category on commodity.category_id = category.category_id
+        left join supplier on supplier.supplier_id = commodity.supplier_id
+        where commodity.qrcode = #{qrcode}
+    </select>
+
+    <update id="commodityGuangdong">
+        update commodity set guangdong = #{param1} where supplier_id = #{param2}
+    </update>
+
+    <update id="updateCommodity" parameterType="com.xinshan.model.Commodity">
+        update commodity
+        set supplier_commodity_code = #{supplier_commodity_code,jdbcType=VARCHAR},
+          commodity_code = #{commodity_code,jdbcType=VARCHAR},
+          bar_code = #{bar_code,jdbcType=VARCHAR},
+          commodity_name = #{commodity_name,jdbcType=VARCHAR},
+          supplier_id = #{supplier_id,jdbcType=INTEGER},
+          purchase_price = #{purchase_price,jdbcType=DECIMAL},
+          sell_price = #{sell_price,jdbcType=DECIMAL},
+          commodity_freight = #{commodity_freight,jdbcType=DECIMAL},
+          category_id = #{category_id,jdbcType=INTEGER},
+          commodity_color_id = #{commodity_color_id,jdbcType=INTEGER},
+          commodity_unit_id = #{commodity_unit_id,jdbcType=INTEGER},
+          commodity_size = #{commodity_size,jdbcType=VARCHAR},
+          record_employee_code = #{record_employee_code,jdbcType=VARCHAR},
+          record_employee_name = #{record_employee_name,jdbcType=VARCHAR},
+          commodity_brand = #{commodity_brand,jdbcType=VARCHAR},
+          supplier_series_id = #{supplier_series_id,jdbcType=INTEGER},
+          record_date = #{record_date,jdbcType=TIMESTAMP},
+          sichuan = #{sichuan,jdbcType=INTEGER},
+          qrcode = #{qrcode,jdbcType=VARCHAR},
+          commodity_sample = #{commodity_sample,jdbcType=INTEGER},
+          guangdong = #{guangdong,jdbcType=INTEGER},
+          commodity_status = #{commodity_status,jdbcType=INTEGER},
+          edit_employee_code = #{edit_employee_code,jdbcType=VARCHAR},
+          edit_employee_name = #{edit_employee_name,jdbcType=VARCHAR},
+          edit_date = #{edit_date,jdbcType=TIMESTAMP},
+          activity_commodity_id = #{activity_commodity_id,jdbcType=INTEGER},
+          bar_code_img = #{bar_code_img,jdbcType=LONGVARCHAR},
+          commodity_img = #{commodity_img,jdbcType=LONGVARCHAR},
+          commodity_remark = #{commodity_remark,jdbcType=LONGVARCHAR}
+        where commodity_id = #{commodity_id,jdbcType=INTEGER}
+    </update>
+</mapper>

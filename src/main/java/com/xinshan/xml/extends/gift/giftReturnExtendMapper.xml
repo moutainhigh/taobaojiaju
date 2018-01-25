@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.gift.GiftReturnExtendMapper">
+    <insert id="createGiftReturn" parameterType="com.xinshan.model.GiftReturn" useGeneratedKeys="true" keyProperty="gift_return_id">
+        insert into gift_return (gift_return_id, gift_id, gift_return_create_date,
+          gift_return_employee_code, gift_return_employee_name,
+          gift_return_status, gift_return_remark
+          )
+        values (#{gift_return_id,jdbcType=INTEGER}, #{gift_id,jdbcType=INTEGER}, #{gift_return_create_date,jdbcType=TIMESTAMP},
+          #{gift_return_employee_code,jdbcType=VARCHAR}, #{gift_return_employee_name,jdbcType=VARCHAR},
+          #{gift_return_status,jdbcType=INTEGER}, #{gift_return_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <insert id="createGiftReturnCommodity" parameterType="com.xinshan.model.GiftReturnCommodity" useGeneratedKeys="true" keyProperty="gift_return_commodity_id">
+        insert into gift_return_commodity (gift_return_commodity_id, gift_return_id,
+          return_num, gift_commodity_id)
+        values (#{gift_return_commodity_id,jdbcType=INTEGER}, #{gift_return_id,jdbcType=INTEGER},
+          #{return_num,jdbcType=INTEGER}, #{gift_commodity_id,jdbcType=INTEGER})
+    </insert>
+
+    <resultMap id="giftReturnResultMap" type="com.xinshan.model.extend.gift.GiftReturnExtend"
+               extends="com.xinshan.dao.GiftReturnMapper.BaseResultMap">
+        <association property="gift" javaType="com.xinshan.model.Gift" resultMap="com.xinshan.dao.GiftMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="giftReturnList" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultMap="giftReturnResultMap">
+        select * from gift_return
+        left join gift on gift.gift_id = gift_return.gift_id
+        where 1=1
+        <include refid="giftReturnQuery"/>
+        order by gift_return.gift_return_id desc
+        <if test="limit != null and start != null">
+            limit #{start}, #{limit}
+        </if>
+    </select>
+    <sql id="giftReturnQuery">
+        <if test="gift_id != null">
+            and gift_return.gift_id = #{gift_id}
+        </if>
+        <if test="gift_return_id != null">
+            and gift_return.gift_return_id = #{gift_return_id}
+        </if>
+    </sql>
+    <select id="countGiftReturn" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultType="java.lang.Integer">
+        select count(*) from gift_return
+        left join gift on gift.gift_id = gift_return.gift_id
+        where 1=1
+        <include refid="giftReturnQuery"/>
+    </select>
+
+    <resultMap id="giftReturnCommodityResultMap" type="com.xinshan.model.extend.gift.GiftReturnCommodityExtend"
+               extends="com.xinshan.dao.GiftReturnCommodityMapper.BaseResultMap">
+        <association property="giftReturn" javaType="com.xinshan.model.GiftReturn"
+                     resultMap="com.xinshan.dao.GiftReturnMapper.BaseResultMap"/>
+        <association property="giftCommodity" javaType="com.xinshan.model.GiftCommodity"
+                     resultMap="com.xinshan.dao.GiftCommodityMapper.BaseResultMap"/>
+        <association property="gift" javaType="com.xinshan.model.Gift"
+                     resultMap="com.xinshan.dao.GiftMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="commodityNum" javaType="com.xinshan.model.CommodityNum"
+                     resultMap="com.xinshan.dao.CommodityNumMapper.BaseResultMap"/>
+        <association property="commodityStore" javaType="com.xinshan.model.CommodityStore"
+                     resultMap="com.xinshan.dao.CommodityStoreMapper.BaseResultMap"/>
+        <association property="user" javaType="com.xinshan.model.User"
+                     resultMap="com.xinshan.dao.UserMapper.BaseResultMap"/>
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="purchaseCommodity" javaType="com.xinshan.model.PurchaseCommodity"
+                     resultMap="com.xinshan.dao.PurchaseCommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="giftReturnCommodities" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultMap="giftReturnCommodityResultMap">
+        select *
+        from gift_return_commodity
+        left join gift_return on gift_return_commodity.gift_return_id = gift_return.gift_return_id
+        left join gift_commodity on gift_commodity.gift_commodity_id = gift_return_commodity.gift_commodity_id
+        left join gift on gift.gift_id = gift_commodity.gift_id
+        left join `order` on `order`.order_id = gift.order_id
+        left JOIN activity on gift.activity_id = activity.activity_id
+        left join `user` on `user`.user_id = gift.user_id
+        left join commodity on gift_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join commodity_num on gift_commodity.commodity_num_id = commodity_num.commodity_num_id
+        left join commodity_store on commodity_num.commodity_store_id = commodity_store.commodity_store_id
+        where 1=1
+        <include refid="reportQuery"/>
+        order by gift_return.gift_return_id desc,gift_return_commodity.gift_return_commodity_id ASC
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="reportQuery">
+        <if test="gift_return_commodity_id != null">
+            and gift_return_commodity.gift_return_commodity_id = #{gift_return_commodity_id}
+        </if>
+        <if test="param != null">
+            and (gift.gift_code like #{param}
+            or `user`.user_name like "%"#{param}"%"
+            or `user`.user_phone like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            )
+        </if>
+        <if test="gift_type != null">
+            and gift.gift_type = #{gift_type}
+        </if>
+        <if test="gift_return_id != null">
+            and gift_return_commodity.gift_return_id = #{gift_return_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (gift_return.gift_return_create_date &gt;= #{startDate} and gift_return.gift_return_create_date &lt; #{endDate})
+        </if>
+    </sql>
+    <select id="countGiftReturnCommodities" parameterType="com.xinshan.pojo.gift.GiftSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT gift_return_commodity.gift_return_commodity_id)
+        from gift_return_commodity
+        left join gift_return on gift_return_commodity.gift_return_id = gift_return.gift_return_id
+        left join gift_commodity on gift_commodity.gift_commodity_id = gift_return_commodity.gift_commodity_id
+        left join gift on gift.gift_id = gift_commodity.gift_id
+        left join `order` on `order`.order_id = gift.order_id
+        left JOIN activity on gift.activity_id = activity.activity_id
+        left join `user` on `user`.user_id = gift.user_id
+        left join commodity on gift_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join commodity_num on gift_commodity.commodity_num_id = commodity_num.commodity_num_id
+        left join commodity_store on commodity_num.commodity_store_id = commodity_store.commodity_store_id
+        where 1=1
+        <include refid="reportQuery"/>
+    </select>
+</mapper>

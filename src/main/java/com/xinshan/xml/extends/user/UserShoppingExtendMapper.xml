@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.user.UserShoppingExtendMapper">
+    <insert id="createUserShopping" parameterType="com.xinshan.model.UserShopping" keyProperty="user_shopping_id" useGeneratedKeys="true">
+        insert into user_shopping (user_shopping_id, user_name, user_first_phone,
+          user_second_phone, user_wx, user_address,
+          shopping_num, shop_address, user_status,
+          user_source, came, return_visit_date,
+          into_store_date, leave_store_date,
+          convert_users, user_id, generate_order,
+          employee_code, employee_name, user_shopping_remark
+          )
+        values (#{user_shopping_id,jdbcType=INTEGER}, #{user_name,jdbcType=VARCHAR}, #{user_first_phone,jdbcType=VARCHAR},
+          #{user_second_phone,jdbcType=VARCHAR}, #{user_wx,jdbcType=VARCHAR}, #{user_address,jdbcType=VARCHAR},
+          #{shopping_num,jdbcType=INTEGER}, #{shop_address,jdbcType=VARCHAR}, #{user_status,jdbcType=INTEGER},
+          #{user_source,jdbcType=VARCHAR}, #{came,jdbcType=INTEGER}, #{return_visit_date,jdbcType=TIMESTAMP},
+          #{into_store_date,jdbcType=TIMESTAMP}, #{leave_store_date,jdbcType=TIMESTAMP},
+          #{convert_users,jdbcType=INTEGER}, #{user_id,jdbcType=INTEGER}, #{generate_order,jdbcType=INTEGER},
+          #{employee_code,jdbcType=VARCHAR}, #{employee_name,jdbcType=VARCHAR}, #{user_shopping_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <insert id="createUserShoppingCommodity" parameterType="com.xinshan.model.UserShoppingCommodity" useGeneratedKeys="true" keyProperty="user_shopping_id">
+        insert into user_shopping_commodity (user_shopping_commodity_id, user_shopping_id,
+          shopping_commodity_enable, commodity_id,
+          shopping_commodity_num, shopping_commodity_bargain_price,
+          shopping_commodity_revision_fee, shopping_commodity_revision_size,
+          shopping_commodity_remark)
+        values (#{user_shopping_commodity_id,jdbcType=INTEGER}, #{user_shopping_id,jdbcType=INTEGER},
+          #{shopping_commodity_enable,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER},
+          #{shopping_commodity_num,jdbcType=INTEGER}, #{shopping_commodity_bargain_price,jdbcType=DECIMAL},
+          #{shopping_commodity_revision_fee,jdbcType=DECIMAL}, #{shopping_commodity_revision_size,jdbcType=LONGVARCHAR},
+          #{shopping_commodity_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <update id="updateUserShopping" parameterType="com.xinshan.model.UserShopping">
+        update user_shopping
+        set user_name = #{user_name,jdbcType=VARCHAR},
+          user_first_phone = #{user_first_phone,jdbcType=VARCHAR},
+          user_second_phone = #{user_second_phone,jdbcType=VARCHAR},
+          user_wx = #{user_wx,jdbcType=VARCHAR},
+          user_address = #{user_address,jdbcType=VARCHAR},
+          shopping_num = #{shopping_num,jdbcType=INTEGER},
+          shop_address = #{shop_address,jdbcType=VARCHAR},
+          user_status = #{user_status,jdbcType=INTEGER},
+          user_source = #{user_source,jdbcType=VARCHAR},
+          came = #{came,jdbcType=INTEGER},
+          return_visit_date = #{return_visit_date,jdbcType=TIMESTAMP},
+          leave_store_date = #{leave_store_date,jdbcType=TIMESTAMP},
+          convert_users = #{convert_users,jdbcType=INTEGER},
+          user_id = #{user_id,jdbcType=INTEGER},
+          generate_order = #{generate_order,jdbcType=INTEGER},
+          employee_code = #{employee_code,jdbcType=VARCHAR},
+          employee_name = #{employee_name,jdbcType=VARCHAR},
+          user_shopping_remark = #{user_shopping_remark,jdbcType=LONGVARCHAR}
+        where user_shopping_id = #{user_shopping_id,jdbcType=INTEGER}
+    </update>
+    <delete id="deleteUserShoppingCommodity" parameterType="java.lang.Integer">
+        delete from user_shopping_commodity where user_shopping_id = #{user_shopping_id}
+    </delete>
+
+    <select id="userShoppingIds" parameterType="com.xinshan.pojo.user.UserSearchOption" resultType="java.lang.Integer">
+        select DISTINCT user_shopping.user_shopping_id from user_shopping
+        left join user on user_shopping.user_id = user.user_id
+        left join user_shopping_commodity on user_shopping.user_shopping_id = user_shopping_commodity.user_shopping_id
+        left join commodity on user_shopping_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <include refid="userShoppingQuery"/>
+        order by user_shopping.user_shopping_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countUserShopping" parameterType="com.xinshan.pojo.user.UserSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT user_shopping.user_shopping_id) from user_shopping
+        left join user on user_shopping.user_id = user.user_id
+        left join user_shopping_commodity on user_shopping.user_shopping_id = user_shopping_commodity.user_shopping_id
+        left join commodity on user_shopping_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <include refid="userShoppingQuery"/>
+    </select>
+    <sql id="userShoppingQuery">
+        <if test="param != null">
+            and (user_shopping.user_name like "%"#{param}"%"
+            or user_shopping.user_first_phone like "%"#{param}"%"
+            or user.user_name like "%"#{param}"%"
+            or user.user_phone like "%"#{param}"%"
+            or user_shopping.employee_code like "%"#{param}"%"
+            )
+        </if>
+        <if test="user_first_phone != null">
+            and user_shopping.user_first_phone = #{user_first_phone}
+        </if>
+        <if test="user_shopping_id != null">
+            and user_shopping.user_shopping_id = #{user_shopping_id}
+        </if>
+        <if test="employee_code != null">
+            and user_shopping.employee_code = #{employee_code}
+        </if>
+        <if test="user_status != null">
+            and user_shopping.user_status = #{user_status}
+        </if>
+        <if test="generate_order != null">
+            and user_shopping.generate_order = #{generate_order}
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and (
+            user_shopping.employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>)
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (user_shopping.into_store_date &gt;= #{startDate} and user_shopping.into_store_date &lt; #{endDate})
+        </if>
+    </sql>
+    <resultMap id="shoppingResultMap" type="com.xinshan.model.extend.user.UserShoppingExtend"
+               extends="com.xinshan.dao.UserShoppingMapper.BaseResultMap">
+        <collection property="userShoppingCommodities" ofType="com.xinshan.model.extend.user.UserShoppingCommodityExtend">
+            <id column="user_shopping_commodity_id" property="user_shopping_commodity_id" jdbcType="INTEGER" />
+            <result column="user_shopping_id" property="user_shopping_id" jdbcType="INTEGER" />
+            <result column="shopping_commodity_enable" property="shopping_commodity_enable" jdbcType="INTEGER" />
+            <result column="commodity_id" property="commodity_id" jdbcType="INTEGER" />
+            <result column="shopping_commodity_num" property="shopping_commodity_num" jdbcType="INTEGER" />
+            <result column="shopping_commodity_bargain_price" property="shopping_commodity_bargain_price" jdbcType="DECIMAL" />
+            <result column="shopping_commodity_revision_fee" property="shopping_commodity_revision_fee" jdbcType="DECIMAL" />
+            <result column="shopping_commodity_revision_size" property="shopping_commodity_revision_size" jdbcType="LONGVARCHAR" />
+            <result column="shopping_commodity_remark" property="shopping_commodity_remark" jdbcType="LONGVARCHAR" />
+            <association property="commodity" javaType="com.xinshan.model.Commodity">
+                <result column="commodity_id" property="commodity_id" jdbcType="INTEGER"/>
+                <result column="commodity_name" property="commodity_name" jdbcType="VARCHAR"/>
+                <result column="commodity_code" property="commodity_code" jdbcType="VARCHAR"/>
+                <result column="sell_price" property="sell_price" jdbcType="DECIMAL"/>
+            </association>
+            <association property="supplier" javaType="com.xinshan.model.Supplier">
+                <result column="supplier_id" property="supplier_id" jdbcType="INTEGER"/>
+                <result column="supplier_name" property="supplier_name" jdbcType="VARCHAR"/>
+            </association>
+        </collection>
+    </resultMap>
+    <select id="userShoppingList" parameterType="com.xinshan.pojo.user.UserSearchOption" resultMap="shoppingResultMap">
+        select * from user_shopping
+        left join user_shopping_commodity on user_shopping.user_shopping_id = user_shopping_commodity.user_shopping_id
+        left join commodity on user_shopping_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="userShoppingIds != null">
+            and user_shopping.user_shopping_id in
+            <foreach item="item" index="index" collection="userShoppingIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by user_shopping.user_shopping_id desc
+    </select>
+
+</mapper>

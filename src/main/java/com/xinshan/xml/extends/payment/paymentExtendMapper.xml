@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.payment.PaymentExtendMapper" >
+
+    <insert id="createPayment" parameterType="com.xinshan.model.Payment" useGeneratedKeys="true" keyProperty="payment_id">
+        insert into payment (payment_id, payment_date, payment_create_date,
+          create_employee_code, create_employee_name,
+          payment_amount, payment_code, payment_bank_account,
+          payment_bank_name, checking_id, pay_source,
+          payment_remark)
+        values (#{payment_id,jdbcType=INTEGER}, #{payment_date,jdbcType=TIMESTAMP}, #{payment_create_date,jdbcType=TIMESTAMP},
+          #{create_employee_code,jdbcType=VARCHAR}, #{create_employee_name,jdbcType=VARCHAR},
+          #{payment_amount,jdbcType=DECIMAL}, #{payment_code,jdbcType=VARCHAR}, #{payment_bank_account,jdbcType=VARCHAR},
+          #{payment_bank_name,jdbcType=VARCHAR}, #{checking_id,jdbcType=INTEGER}, #{pay_source,jdbcType=INTEGER},
+          #{payment_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <resultMap id="paymentResultMap" type="com.xinshan.model.extend.payment.PaymentExtend"
+               extends="com.xinshan.dao.PaymentMapper.BaseResultMap">
+        <association property="checking" javaType="com.xinshan.model.Checking"
+                     resultMap="com.xinshan.dao.CheckingMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="paymentList" parameterType="com.xinshan.pojo.payment.PaymentSearchOption" resultMap="paymentResultMap">
+        select * from payment
+        left join checking on payment.checking_id = checking.checking_id
+        left join supplier on supplier.supplier_id = checking.supplier_id
+        where 1=1
+        <if test="checking_id">
+            and payment.checking_id = #{checking_id}
+        </if>
+        <if test="supplier_id">
+            and checking.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= payment.payment_date and payment.payment_date &lt; #{endDate})
+        </if>
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countPayment" parameterType="com.xinshan.pojo.payment.PaymentSearchOption" resultType="java.lang.Integer">
+        select count(*) from payment
+        left join checking on payment.checking_id = checking.checking_id
+        left join supplier on supplier.supplier_id = checking.supplier_id
+        where 1=1
+        <if test="checking_id">
+            and payment.checking_id = #{checking_id}
+        </if>
+        <if test="supplier_id">
+            and checking.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= payment.payment_date and payment.payment_date &lt; #{endDate})
+        </if>
+    </select>
+    <select id="maxPaymentCode" resultType="java.lang.String">
+        select max(payment_code) from payment where payment_code regexp #{dateStr}
+    </select>
+</mapper>

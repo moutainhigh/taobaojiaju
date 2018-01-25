@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.afterSales.AfterSalesExtendMapper" >
+    <insert id="createAfterSales" parameterType="com.xinshan.model.AfterSales" useGeneratedKeys="true" keyProperty="after_sales_id">
+        insert into after_sales (after_sales_id, record_date, order_id,
+          after_sales_status, resolve_date, record_employee_code,
+          record_employee_name, after_sales_fee_status,
+          problem_desc, order_fee_ids)
+        values (#{after_sales_id,jdbcType=INTEGER}, #{record_date,jdbcType=TIMESTAMP}, #{order_id,jdbcType=INTEGER},
+          #{after_sales_status,jdbcType=INTEGER}, #{resolve_date,jdbcType=TIMESTAMP}, #{record_employee_code,jdbcType=VARCHAR},
+          #{record_employee_name,jdbcType=VARCHAR}, #{after_sales_fee_status,jdbcType=INTEGER},
+          #{problem_desc,jdbcType=LONGVARCHAR}, #{order_fee_ids,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createAfterSalesCommodity" parameterType="com.xinshan.model.AfterSalesCommodity" useGeneratedKeys="true" keyProperty="after_sales_commodity_id">
+        insert into after_sales_commodity (after_sales_commodity_id, after_sales_id,
+          order_commodity_id, commodity_id, commodity_problem_fix_status,
+          commodity_problem_resolve_date, after_sales_type,
+          commodity_problem_return_status, return_pay_status,
+          commodity_problem_desc)
+        values (#{after_sales_commodity_id,jdbcType=INTEGER}, #{after_sales_id,jdbcType=INTEGER},
+          #{order_commodity_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER}, #{commodity_problem_fix_status,jdbcType=INTEGER},
+          #{commodity_problem_resolve_date,jdbcType=TIMESTAMP}, #{after_sales_type,jdbcType=INTEGER},
+          #{commodity_problem_return_status,jdbcType=INTEGER}, #{return_pay_status,jdbcType=INTEGER},
+          #{commodity_problem_desc,jdbcType=LONGVARCHAR})
+    </insert>
+
+
+    <select id="afterSalesIds" parameterType="com.xinshan.pojo.afterSales.AfterSalesSearchOption" resultType="java.lang.Integer">
+        select DISTINCT after_sales.after_sales_id from after_sales
+        left join after_sales_commodity on after_sales.after_sales_id = after_sales_commodity.after_sales_id
+        left join `order` on `order`.order_id = after_sales.order_id
+        left join commodity on commodity.commodity_id = after_sales_commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="after_sales_id != null">
+            and after_sales.after_sales_id = #{after_sales_id }
+        </if>
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%")
+        </if>
+        <if test="commodity_id != null">
+            and after_sales.commodity_id = #{commodity_id}
+        </if>
+        <if test="order_id != null">
+            and after_sales.order_id = #{order_id}
+        </if>
+        <if test="supplier_id">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        order by after_sales.after_sales_status,after_sales.record_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countAfterSales" parameterType="com.xinshan.pojo.afterSales.AfterSalesSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT after_sales.after_sales_id) from after_sales
+        left join after_sales_commodity on after_sales.after_sales_id = after_sales_commodity.after_sales_id
+        left join `order` on `order`.order_id = after_sales.order_id
+        left join commodity on commodity.commodity_id = after_sales_commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="after_sales_id != null">
+            and after_sales.after_sales_id = #{after_sales_id }
+        </if>
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%")
+        </if>
+        <if test="commodity_id != null">
+            and after_sales.commodity_id = #{commodity_id}
+        </if>
+        <if test="order_id != null">
+            and after_sales.order_id = #{order_id}
+        </if>
+        <if test="supplier_id">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+    </select>
+    <resultMap id="afterSalesResultMap" type="com.xinshan.model.extend.afterSales.AfterSalesExtend"
+               extends="com.xinshan.dao.AfterSalesMapper.BaseResultMap">
+        <association property="order" javaType="com.xinshan.model.Order" resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="afterSalesList" parameterType="com.xinshan.pojo.afterSales.AfterSalesSearchOption" resultMap="afterSalesResultMap">
+        select * from after_sales
+        left join `order` on `order`.order_id = after_sales.order_id
+        where after_sales.after_sales_id in
+        <foreach item="item" index="index" collection="afterSalesIds"  open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        order by after_sales.after_sales_status,after_sales.record_date desc
+    </select>
+
+    <resultMap id="afterSalesCommodityResultMap" type="com.xinshan.model.extend.afterSales.AfterSalesCommodityExtend"
+               extends="com.xinshan.dao.AfterSalesCommodityMapper.BaseResultMap">
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="orderCommodity" javaType="com.xinshan.model.OrderCommodity"
+                     resultMap="com.xinshan.dao.OrderCommodityMapper.BaseResultMap"/>
+        <association property="orderReturnCommodity" javaType="com.xinshan.model.OrderReturnCommodity"
+                     resultMap="com.xinshan.dao.OrderReturnCommodityMapper.BaseResultMap"/>
+        <association property="purchaseCommodity" javaType="com.xinshan.model.PurchaseCommodity"
+                     resultMap="com.xinshan.dao.PurchaseCommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="afterSalesCommodities" resultMap="afterSalesCommodityResultMap" parameterType="com.xinshan.pojo.afterSales.AfterSalesSearchOption">
+        select * from after_sales_commodity
+        left join commodity on commodity.commodity_id = after_sales_commodity.commodity_id
+        left join order_commodity on after_sales_commodity.order_commodity_id = order_commodity.order_commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join order_return_commodity on after_sales_commodity.after_sales_commodity_id = order_return_commodity.after_sales_commodity_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        where 1=1
+        <if test="after_sales_id != null">
+            and after_sales_commodity.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="after_sales_commodity_id != null">
+            and after_sales_commodity.after_sales_commodity_id = #{after_sales_commodity_id}
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="after_sales_type != null">
+            and after_sales_commodity.after_sales_type = #{after_sales_type}
+        </if>
+    </select>
+</mapper>

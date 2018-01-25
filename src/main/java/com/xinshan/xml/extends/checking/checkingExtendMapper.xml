@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.checking.CheckingExtendMapper">
+    <insert id="createChecking" parameterType="com.xinshan.model.Checking" useGeneratedKeys="true" keyProperty="checking_id">
+        insert into checking (checking_id, checking_code, create_date,
+          create_employee_code, create_employee_name,
+          supplier_id, payment_status, supplier_contacts,
+          checking_type, check_status, check_date,
+          check_employee_code, check_employee_name,
+          pay_date, pay_employee_code, pay_employee_name,
+          check_remark)
+        values (#{checking_id,jdbcType=INTEGER}, #{checking_code,jdbcType=VARCHAR}, #{create_date,jdbcType=TIMESTAMP},
+          #{create_employee_code,jdbcType=VARCHAR}, #{create_employee_name,jdbcType=VARCHAR},
+          #{supplier_id,jdbcType=INTEGER}, #{payment_status,jdbcType=INTEGER}, #{supplier_contacts,jdbcType=VARCHAR},
+          #{checking_type,jdbcType=INTEGER}, #{check_status,jdbcType=INTEGER}, #{check_date,jdbcType=TIMESTAMP},
+          #{check_employee_code,jdbcType=VARCHAR}, #{check_employee_name,jdbcType=VARCHAR},
+          #{pay_date,jdbcType=TIMESTAMP}, #{pay_employee_code,jdbcType=VARCHAR}, #{pay_employee_name,jdbcType=VARCHAR},
+          #{check_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createCheckingDetail" parameterType="com.xinshan.model.CheckingDetail" useGeneratedKeys="true" keyProperty="checking_detail_id">
+        insert into checking_detail (checking_detail_id, checking_id,
+          checking_detail_type, settlement_id, order_id,
+          order_commodity_id, commodity_id, commodity_num,
+          bargain_price, revision_fee, commodity_total_price,
+          purchase_unit_price, purchase_total_price,
+          fee_type, supplier_fee, fhc_fee,
+          fee, after_sales_id, sample_fix_id
+          )
+        values (#{checking_detail_id,jdbcType=INTEGER}, #{checking_id,jdbcType=INTEGER},
+          #{checking_detail_type,jdbcType=INTEGER}, #{settlement_id,jdbcType=INTEGER}, #{order_id,jdbcType=INTEGER},
+          #{order_commodity_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER}, #{commodity_num,jdbcType=INTEGER},
+          #{bargain_price,jdbcType=DECIMAL}, #{revision_fee,jdbcType=DECIMAL}, #{commodity_total_price,jdbcType=DECIMAL},
+          #{purchase_unit_price,jdbcType=DECIMAL}, #{purchase_total_price,jdbcType=DECIMAL},
+          #{fee_type,jdbcType=INTEGER}, #{supplier_fee,jdbcType=DECIMAL}, #{fhc_fee,jdbcType=DECIMAL},
+          #{fee,jdbcType=DECIMAL}, #{after_sales_id,jdbcType=INTEGER}, #{sample_fix_id,jdbcType=INTEGER}
+          )
+    </insert>
+    <select id="todayCheckingNum" resultType="java.lang.String">
+        select max(checking_code) from checking where checking_code regexp #{dateStr}
+    </select>
+
+    <resultMap id="checkingDetailResultMap" type="com.xinshan.model.extend.checking.CheckingDetailExtend"
+               extends="com.xinshan.dao.CheckingDetailMapper.BaseResultMap">
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="checking" javaType="com.xinshan.model.Checking"
+                     resultMap="com.xinshan.dao.CheckingMapper.BaseResultMap"/>
+        <association property="orderCommodity" javaType="com.xinshan.model.OrderCommodity"
+                     resultMap="com.xinshan.dao.OrderCommodityMapper.BaseResultMap"/>
+        <association property="sampleFix" javaType="com.xinshan.model.CommoditySampleFix"
+                     resultMap="com.xinshan.dao.CommoditySampleFixMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="checkingDetailList" parameterType="com.xinshan.pojo.checking.CheckingSearchOptions" resultMap="checkingDetailResultMap">
+        select
+        checking_detail.*,
+        `order`.order_code,`order`.customer_name,`order`.customer_phone_number,`order`.order_date,
+        commodity.commodity_code, commodity.supplier_commodity_code, commodity.commodity_name,
+        checking.check_remark,
+        order_commodity.bargain_price,order_commodity.revision_fee,order_commodity.revision_size,order_commodity.sample,
+        order_commodity.commodity_total_price,commodity_sample_fix.sample_fix_code
+        from checking_detail
+        left join `order` on checking_detail.order_id = `order`.order_id
+        left join commodity on checking_detail.commodity_id = commodity.commodity_id
+        left join checking on checking_detail.checking_id = checking.checking_id
+        left join order_commodity on checking_detail.order_commodity_id = order_commodity.order_commodity_id
+        left join commodity_sample_fix on commodity_sample_fix.sample_fix_id = checking_detail.sample_fix_id
+        where 1=1
+        <if test="checking_id != null">
+            and checking_detail.checking_id = #{checking_id}
+        </if>
+        order by checking_detail.checking_detail_id desc
+        <if test="limit != null and start != null">
+            limit #{start}, #{limit}
+        </if>
+    </select>
+
+    <select id="countCheckingDetails" parameterType="com.xinshan.pojo.checking.CheckingSearchOptions" resultType="java.lang.Integer">
+        select
+        count(checking_detail.checking_detail_id)
+        from checking_detail
+        left join `order` on checking_detail.order_id = `order`.order_id
+        left join commodity on checking_detail.commodity_id = commodity.commodity_id
+        where 1=1
+        <if test="checking_id != null">
+            and checking_detail.checking_id = #{checking_id}
+        </if>
+    </select>
+
+    <resultMap id="checkingResultMap" type="com.xinshan.model.extend.checking.CheckingExtend"
+               extends="com.xinshan.dao.CheckingMapper.BaseResultMap">
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <collection property="payments" ofType="com.xinshan.model.Payment"
+                    resultMap="com.xinshan.dao.PaymentMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="getCheckingById" resultMap="checkingResultMap">
+        select * from checking
+        left join supplier on checking.supplier_id = supplier.supplier_id
+        left join payment on checking.checking_id = payment.checking_id
+        where checking.checking_id = #{checking_id}
+    </select>
+
+    <select id="checkingList" resultMap="checkingResultMap">
+        select * from checking
+        left join supplier on checking.supplier_id = supplier.supplier_id
+        left join payment on checking.checking_id = payment.checking_id
+        where checking.checking_id in
+        <foreach collection="list" item="item" index="index" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+        order by checking.checking_code desc
+    </select>
+
+    <select id="checkingIds" parameterType="com.xinshan.pojo.checking.CheckingSearchOptions" resultType="java.lang.Integer">
+        select distinct checking.checking_id from checking
+        left join supplier on supplier.supplier_id = checking.supplier_id
+        left join checking_detail on checking.checking_id = checking_detail.checking_id
+        left join `order` on checking_detail.order_id = `order`.order_id
+        where 1=1
+        <if test="checking_id != null">
+            and checking.checking_id = #{checking_id}
+        </if>
+        <if test="checking_type != null">
+            and checking.checking_type = #{checking_type}
+        </if>
+        <if test="checking_code != null">
+            and checking.checking_code = #{checking_code}
+        </if>
+        <if test="param != null">
+            and (
+            checking.checking_code like "%"#{param}"%"
+            or supplier.contacts like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or checking.supplier_contacts like "%"#{param}"%"
+            )
+        </if>
+        <if test="supplier_id != null">
+            and checking.supplier_id = #{supplier_id}
+        </if>
+        <if test="payment_status != null">
+            and checking.payment_status = #{payment_status}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (checking.create_date &gt;= #{startDate} and checking.create_date &lt;= #{endDate})
+        </if>
+        <if test="contacts != null">
+            and supplier.contacts = #{contacts}
+        </if>
+        order by checking.checking_code desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countChecking" parameterType="com.xinshan.pojo.checking.CheckingSearchOptions" resultType="java.lang.Integer">
+        select count(distinct checking.checking_id) from checking
+        left join supplier on supplier.supplier_id = checking.supplier_id
+        left join checking_detail on checking.checking_id = checking_detail.checking_id
+        left join `order` on checking_detail.order_id = `order`.order_id
+        where 1=1
+        <if test="checking_id != null">
+            and checking.checking_id = #{checking_id}
+        </if>
+        <if test="checking_type != null">
+            and checking.checking_type = #{checking_type}
+        </if>
+        <if test="checking_code != null">
+            and checking.checking_code = #{checking_code}
+        </if>
+        <if test="param != null">
+            and (
+            checking.checking_code like "%"#{param}"%"
+            or supplier.contacts like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or checking.supplier_contacts like "%"#{param}"%"
+            )
+        </if>
+        <if test="supplier_id != null">
+            and checking.supplier_id = #{supplier_id}
+        </if>
+        <if test="payment_status != null">
+            and checking.payment_status = #{payment_status}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (checking.create_date &gt;= #{startDate} and checking.create_date &lt;= #{endDate})
+        </if>
+        <if test="contacts != null">
+            and supplier.contacts = #{contacts}
+        </if>
+    </select>
+</mapper>

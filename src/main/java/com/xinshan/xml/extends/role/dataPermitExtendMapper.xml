@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.role.DataPermitExtendMapper">
+    <insert id="createDataPermit" parameterType="com.xinshan.model.DataPermit" keyProperty="data_permit_id" useGeneratedKeys="true">
+        insert into data_permit (data_permit_id, url, role_id,
+        data_cols)
+        values (#{data_permit_id,jdbcType=INTEGER}, #{url,jdbcType=VARCHAR}, #{role_id,jdbcType=INTEGER},
+        #{data_cols,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <select id="dataPermitList" parameterType="com.xinshan.pojo.role.DataPermitSearchOption" resultType="com.xinshan.model.DataPermit">
+        select * from data_permit
+        where 1=1
+        <if test="url != null">
+            and url = #{url}
+        </if>
+        <if test="role_id != null">
+            and role_id = #{role_id}
+        </if>
+        order by data_permit_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countDataPermit" parameterType="com.xinshan.pojo.role.DataPermitSearchOption" resultType="java.lang.Integer">
+        select count(*) from data_permit
+        where 1=1
+        <if test="url != null">
+            and url = #{url}
+        </if>
+        <if test="role_id != null">
+            and role_id = #{role_id}
+        </if>
+    </select>
+</mapper>

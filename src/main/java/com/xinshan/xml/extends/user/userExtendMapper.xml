@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.user.UserExtendMapper">
+    <insert id="createUser" parameterType="com.xinshan.model.User" useGeneratedKeys="true" keyProperty="user_id">
+        insert into user (user_id, user_name, user_phone,
+          user_weixin, user_age, user_occupation,
+          user_address, user_sex, spare_contacts_name,
+          spare_contacts_phone, spare_contacts_address,
+          record_employee_code, record_employee_name,
+          position_id, user_referrals, user_create_date,
+          user_type, province_zip, city_zip,
+          district_zip, user_delivery_address_id,
+          user_employee_code, user_employee_name,
+          user_second_phone, history_daogou,
+          backup_phone)
+        values (#{user_id,jdbcType=INTEGER}, #{user_name,jdbcType=VARCHAR}, #{user_phone,jdbcType=VARCHAR},
+          #{user_weixin,jdbcType=VARCHAR}, #{user_age,jdbcType=INTEGER}, #{user_occupation,jdbcType=VARCHAR},
+          #{user_address,jdbcType=VARCHAR}, #{user_sex,jdbcType=INTEGER}, #{spare_contacts_name,jdbcType=VARCHAR},
+          #{spare_contacts_phone,jdbcType=VARCHAR}, #{spare_contacts_address,jdbcType=VARCHAR},
+          #{record_employee_code,jdbcType=VARCHAR}, #{record_employee_name,jdbcType=VARCHAR},
+          #{position_id,jdbcType=INTEGER}, #{user_referrals,jdbcType=INTEGER}, #{user_create_date,jdbcType=TIMESTAMP},
+          #{user_type,jdbcType=INTEGER}, #{province_zip,jdbcType=VARCHAR}, #{city_zip,jdbcType=VARCHAR},
+          #{district_zip,jdbcType=VARCHAR}, #{user_delivery_address_id,jdbcType=INTEGER},
+          #{user_employee_code,jdbcType=VARCHAR}, #{user_employee_name,jdbcType=VARCHAR},
+          #{user_second_phone,jdbcType=LONGVARCHAR}, #{history_daogou,jdbcType=LONGVARCHAR},
+          #{backup_phone,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="createDeliveryAddress" parameterType="com.xinshan.model.UserDeliveryAddress" keyProperty="user_delivery_address_id" useGeneratedKeys="true">
+        insert into user_delivery_address (user_delivery_address_id, user_id,
+          province_zip, city_zip, district_zip,
+          delivery_address, user_delivery_address_enable
+          )
+        values (#{user_delivery_address_id,jdbcType=INTEGER}, #{user_id,jdbcType=INTEGER},
+          #{province_zip,jdbcType=VARCHAR}, #{city_zip,jdbcType=VARCHAR}, #{district_zip,jdbcType=VARCHAR},
+          #{delivery_address,jdbcType=VARCHAR}, #{user_delivery_address_enable,jdbcType=INTEGER}
+          )
+    </insert>
+
+    <update id="updateUserType" parameterType="com.xinshan.model.User">
+        update user
+        set user_type = #{user_type,jdbcType=INTEGER}
+        where user_id = #{user_id,jdbcType=INTEGER}
+    </update>
+    <resultMap id="userResultMap" type="com.xinshan.model.extend.user.UserExtend"
+               extends="com.xinshan.dao.UserMapper.BaseResultMap">
+        <result column="orderNum" property="orderNum" jdbcType="INTEGER"/>
+        <result column="user_referrals_name" property="user_referrals_name" jdbcType="VARCHAR"/>
+        <association property="userOpenid" javaType="com.xinshan.model.UserOpenid"
+                     resultMap="com.xinshan.dao.UserOpenidMapper.BaseResultMap"/>
+        <association property="position" javaType="com.xinshan.model.Position"
+                     resultMap="com.xinshan.dao.PositionMapper.BaseResultMap"/>
+        <association property="userDeliveryAddress" javaType="com.xinshan.model.UserDeliveryAddress"
+                     resultMap="com.xinshan.dao.UserDeliveryAddressMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="userList" parameterType="com.xinshan.pojo.user.UserSearchOption" resultMap="userResultMap">
+        select *,(select count(*) from `order` where `order`.customer_phone_number = user.user_phone) as orderNum
+        ,(select user_name from user us where us.user_id = user.user_referrals) as user_referrals_name
+        from `user`
+        left join `user_openid` on `user`.user_id = `user_openid`.user_id
+        left join position on `user`.position_id = position.position_id
+        left join user_delivery_address on user.user_delivery_address_id = user_delivery_address.user_delivery_address_id
+        WHERE 1=1
+        <include refid="userListQuery"/>
+        order by `user`.user_id desc
+        <if test="limit!=null and start!=null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countUser" parameterType="com.xinshan.pojo.user.UserSearchOption" resultType="java.lang.Integer">
+        select count(*) from `user`
+        left join `user_openid` on `user`.user_id = `user_openid`.user_id
+        WHERE 1=1
+        <include refid="userListQuery"/>
+    </select>
+    <sql id="userListQuery">
+        <if test="param != null">
+            and (`user`.user_name like "%"#{param}"%"
+            or `user`.user_phone like "%"#{param}"%")
+        </if>
+        <if test="user_id!=null">
+            and `user`.user_id = #{user_id}
+        </if>
+        <if test="record_employee_code != null">
+            and `user`.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="phone_number != null">
+            and `user`.user_phone = #{phone_number}
+        </if>
+        <if test="user_phone != null">
+            and `user`.user_phone = #{user_phone}
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and `user`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="user_weixin_openid != null">
+            and `user_openid`.openid = #{user_weixin_openid}
+        </if>
+        <if test="position_id != null">
+            and `user`.position_id = #{position_id}
+        </if>
+        <if test="orderNum != null">
+            <choose>
+                <when test="orderNum == -1">
+                    and (select count(*) from `order` where `order`.customer_phone_number = user.user_phone) = 0
+                </when>
+                <otherwise>
+                    and (select count(*) from `order` where `order`.customer_phone_number = user.user_phone) &gt; #{orderNum}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="user_referrals != null">
+            <choose>
+                <when test="user_referrals == -1">
+                    and `user`.user_referrals is null
+                </when>
+                <when test="user_referrals == 0">
+                    and `user`.user_referrals is not null
+                </when>
+                <otherwise>
+                    and `user`.user_referrals = #{user_referrals}
+                </otherwise>
+            </choose>
+        </if>
+        <if test="user_type != null">
+            and user.user_type = #{user_type}
+        </if>
+        <if test="daogou != null">
+            <choose>
+                <when test="daogou == 0">
+                    and `user`.record_employee_code is null
+                </when>
+                <when test="daogou == 1">
+                    and `user`.record_employee_code is not null
+                </when>
+            </choose>
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (`user`.user_create_date &gt;= #{startDate} and `user`.user_create_date &lt; #{endDate})
+        </if>
+    </sql>
+
+</mapper>

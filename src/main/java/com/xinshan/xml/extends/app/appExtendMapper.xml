@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.app.AppExtendMapper">
+    <insert id="createSysApp" parameterType="com.xinshan.model.SysApp" useGeneratedKeys="true" keyProperty="app_id">
+        insert into sys_app (app_id, app_name, app_title,
+          parent_app, app_status, app_sort,
+          app_icon, links, only_admin,
+          js_directory)
+        values (#{app_id,jdbcType=INTEGER}, #{app_name,jdbcType=VARCHAR}, #{app_title,jdbcType=VARCHAR},
+          #{parent_app,jdbcType=INTEGER}, #{app_status,jdbcType=INTEGER}, #{app_sort,jdbcType=INTEGER},
+          #{app_icon,jdbcType=VARCHAR}, #{links,jdbcType=INTEGER}, #{only_admin,jdbcType=INTEGER},
+          #{js_directory,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="createSysAppButton" parameterType="com.xinshan.model.SysAppButton" useGeneratedKeys="true" keyProperty="sys_app_button_id">
+        insert into sys_app_button (sys_app_button_id, app_id, button_title,
+          button_status, only_admin, alias,
+          button_name)
+        values (#{sys_app_button_id,jdbcType=INTEGER}, #{app_id,jdbcType=INTEGER}, #{button_title,jdbcType=VARCHAR},
+          #{button_status,jdbcType=INTEGER}, #{only_admin,jdbcType=INTEGER}, #{alias,jdbcType=VARCHAR},
+          #{button_name,jdbcType=LONGVARCHAR})
+    </insert>
+    <update id="updateSysAppButton" parameterType="com.xinshan.model.SysAppButton">
+        update sys_app_button
+        set app_id = #{app_id,jdbcType=INTEGER},
+          button_title = #{button_title,jdbcType=VARCHAR},
+          button_status = #{button_status,jdbcType=INTEGER},
+          only_admin = #{only_admin,jdbcType=INTEGER},
+          alias = #{alias,jdbcType=VARCHAR},
+          button_name = #{button_name,jdbcType=LONGVARCHAR}
+        where sys_app_button_id = #{sys_app_button_id,jdbcType=INTEGER}
+    </update>
+
+    <select id="apps" parameterType="com.xinshan.pojo.app.AppSearchOption" resultType="com.xinshan.model.extend.app.SysAppExtend">
+        select * from sys_app
+        where 1=1
+        <if test="appIds != null">
+            and app_id in
+            <foreach item="item" index="index" collection="appIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="buttons" parameterType="com.xinshan.pojo.app.AppSearchOption" resultType="com.xinshan.model.SysAppButton">
+        select * from sys_app_button
+        where 1=1
+        <if test="buttonIds!=null">
+            and sys_app_button_id in
+            <foreach item="item" index="index" collection="buttonIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="appPermitEmployees" resultType="java.lang.String">
+        select employee_code from role_admin
+    </select>
+
+    <update id="updateSysApp" parameterType="com.xinshan.model.SysApp">
+        update sys_app
+        set app_name = #{app_name,jdbcType=VARCHAR},
+          app_title = #{app_title,jdbcType=VARCHAR},
+          parent_app = #{parent_app,jdbcType=INTEGER},
+          app_status = #{app_status,jdbcType=INTEGER},
+          app_sort = #{app_sort,jdbcType=INTEGER},
+          app_icon = #{app_icon,jdbcType=VARCHAR},
+          links = #{links,jdbcType=INTEGER},
+          only_admin = #{only_admin,jdbcType=INTEGER},
+          js_directory = #{js_directory,jdbcType=VARCHAR}
+        where app_id = #{app_id,jdbcType=INTEGER}
+    </update>
+</mapper>

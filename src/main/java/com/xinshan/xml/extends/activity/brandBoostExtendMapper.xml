@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.activity.BrandBoostExtendMapper" >
+
+    <insert id="createBrandBoost" parameterType="com.xinshan.model.BrandBoost" keyProperty="brand_boost_id" useGeneratedKeys="true">
+        insert into brand_boost (brand_boost_id, activity_id, user_id,
+          receipt_code, receipt_amount, brand_name,
+          brand_boost_create_employee_name, brand_boost_create_employee_code,
+          brand_boost_create_date, brand_boost_remark
+          )
+        values (#{brand_boost_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER}, #{user_id,jdbcType=INTEGER},
+          #{receipt_code,jdbcType=VARCHAR}, #{receipt_amount,jdbcType=DECIMAL}, #{brand_name,jdbcType=VARCHAR},
+          #{brand_boost_create_employee_name,jdbcType=VARCHAR}, #{brand_boost_create_employee_code,jdbcType=VARCHAR},
+          #{brand_boost_create_date,jdbcType=TIMESTAMP}, #{brand_boost_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <resultMap id="brandBoostResultMao" type="com.xinshan.model.extend.activity.BrandBoostExtend"
+               extends="com.xinshan.dao.BrandBoostMapper.BaseResultMap">
+        <association property="activity" javaType="com.xinshan.model.Activity" resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="user" javaType="com.xinshan.model.User" resultMap="com.xinshan.dao.UserMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="brandBoostList" parameterType="com.xinshan.pojo.activity.BrandBoostSearchOption" resultMap="brandBoostResultMao">
+        select brand_boost.*
+        ,activity.activity_name
+        ,`user`.user_name,`user`.user_phone
+        FROM brand_boost
+        left join activity on brand_boost.activity_id = activity.activity_id
+        left join `user` on `user`.user_id = brand_boost.user_id
+        where 1=1
+        <if test="activity_id != null">
+            and brand_boost.activity_id = #{activity_id}
+        </if>
+        <if test="user_id != null">
+            and brand_boost.user_id = #{user_id}
+        </if>
+        <if test="brand_boost_id != null">
+            and brand_boost.brand_boost_id = #{brand_boost_id}
+        </if>
+        order by brand_boost.brand_boost_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countBrandBoost" parameterType="com.xinshan.pojo.activity.BrandBoostSearchOption" resultType="java.lang.Integer">
+        select count(*) FROM brand_boost
+        left join activity on brand_boost.activity_id = activity.activity_id
+        left join `user` on `user`.user_id = brand_boost.user_id
+        where 1=1
+        <if test="activity_id != null">
+            and brand_boost.activity_id = #{activity_id}
+        </if>
+        <if test="user_id != null">
+            and brand_boost.user_id = #{user_id}
+        </if>
+        <if test="brand_boost_id != null">
+            and brand_boost.brand_boost_id = #{brand_boost_id}
+        </if>
+    </select>
+</mapper>

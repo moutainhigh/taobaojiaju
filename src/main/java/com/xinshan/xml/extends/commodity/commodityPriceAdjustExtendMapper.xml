@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.commodity.CommodityPriceAdjustExtendMapper">
+
+    <insert id="createCommodityPriceAdjust" parameterType="com.xinshan.model.CommodityPriceAdjust" keyProperty="commodity_price_adjust_id" useGeneratedKeys="true">
+        insert into commodity_price_adjust (commodity_price_adjust_id, adjust_create_date,
+          adjust_create_employee_code, adjust_create_employee_name,
+          adjust_status, adjust_effective_date,
+          adjust_remark)
+        values (#{commodity_price_adjust_id,jdbcType=INTEGER}, #{adjust_create_date,jdbcType=TIMESTAMP},
+          #{adjust_create_employee_code,jdbcType=VARCHAR}, #{adjust_create_employee_name,jdbcType=VARCHAR},
+          #{adjust_status,jdbcType=INTEGER}, #{adjust_effective_date,jdbcType=TIMESTAMP},
+          #{adjust_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="createAdjustDetail" parameterType="com.xinshan.model.CommodityPriceAdjustDetail" keyProperty="commodity_price_adjust_detail_id" useGeneratedKeys="true">
+        insert into commodity_price_adjust_detail (commodity_price_adjust_detail_id, commodity_price_adjust_id,
+          commodity_id, before_sell_price, after_sell_price,
+          before_purchase_price, after_purchase_price,
+          price_adjust_check_status, price_adjust_enable,
+          price_adjust_check_date, price_adjust_check_employee_code,
+          price_adjust_check_employee_name)
+        values (#{commodity_price_adjust_detail_id,jdbcType=INTEGER}, #{commodity_price_adjust_id,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER}, #{before_sell_price,jdbcType=DECIMAL}, #{after_sell_price,jdbcType=DECIMAL},
+          #{before_purchase_price,jdbcType=DECIMAL}, #{after_purchase_price,jdbcType=DECIMAL},
+          #{price_adjust_check_status,jdbcType=INTEGER}, #{price_adjust_enable,jdbcType=INTEGER},
+          #{price_adjust_check_date,jdbcType=TIMESTAMP}, #{price_adjust_check_employee_code,jdbcType=VARCHAR},
+          #{price_adjust_check_employee_name,jdbcType=VARCHAR})
+    </insert>
+
+    <resultMap id="commodityPriceAdjustExtendsResultMap" type="com.xinshan.model.CommodityPriceAdjust"
+               extends="com.xinshan.dao.CommodityPriceAdjustMapper.BaseResultMap">
+
+    </resultMap>
+    <select id="commodityPriceAdjustExtends" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultMap="commodityPriceAdjustExtendsResultMap">
+        select * from commodity_price_adjust
+        where 1=1
+        <if test="commodity_price_adjust_id != null">
+            and commodity_price_adjust_id = #{commodity_price_adjust_id}
+        </if>
+        order by commodity_price_adjust_id DESC
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countCommodityPriceAdjust" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="java.lang.Integer">
+        select count(*) from commodity_price_adjust
+        where 1=1
+        <if test="commodity_price_adjust_id != null">
+            and commodity_price_adjust_id = #{commodity_price_adjust_id}
+        </if>
+    </select>
+
+    <resultMap id="priceAdjustDetailResultMap" type="com.xinshan.model.extend.commodity.CommodityPriceAdjustDetailExtend"
+               extends="com.xinshan.dao.CommodityPriceAdjustDetailMapper.BaseResultMap">
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="commodityPriceAdjust" javaType="com.xinshan.model.CommodityPriceAdjust"
+                     resultMap="com.xinshan.dao.CommodityPriceAdjustMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="detailExtends" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultMap="priceAdjustDetailResultMap">
+        select
+        commodity_price_adjust_detail.*
+        ,commodity.commodity_code,commodity.commodity_name
+        from commodity_price_adjust_detail
+        left join commodity on commodity_price_adjust_detail.commodity_id = commodity.commodity_id
+        left join commodity_price_adjust on commodity_price_adjust_detail.commodity_price_adjust_id = commodity_price_adjust.commodity_price_adjust_id
+        where 1=1
+        <if test="commodity_price_adjust_id != null">
+            and commodity_price_adjust_detail.commodity_price_adjust_id = #{commodity_price_adjust_id}
+        </if>
+        <if test="commodity_id != null">
+            and commodity_price_adjust_detail.commodity_id = #{commodity_id}
+        </if>
+        <if test="price_adjust_check_status != null">
+            and commodity_price_adjust_detail.price_adjust_check_status = #{price_adjust_check_status}
+        </if>
+        <if test="price_adjust_enable != null">
+            and commodity_price_adjust_detail.price_adjust_enable = #{price_adjust_enable}
+        </if>
+        <if test="commodityPriceAdjustDetailIds != null">
+            and commodity_price_adjust_detail.commodity_price_adjust_detail_id in
+            <foreach item="item" index="index" collection="commodityPriceAdjustDetailIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by commodity_price_adjust_detail.price_adjust_check_date desc, commodity_price_adjust_detail.commodity_price_adjust_detail_id desc
+        <if test="start != null and limit != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countPriceAdjustDetail" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="java.lang.Integer">
+        select
+        count(DISTINCT commodity_price_adjust_detail.commodity_price_adjust_detail_id)
+        from commodity_price_adjust_detail
+        left join commodity on commodity_price_adjust_detail.commodity_id = commodity.commodity_id
+        left join commodity_price_adjust on commodity_price_adjust_detail.commodity_price_adjust_id = commodity_price_adjust.commodity_price_adjust_id
+        where 1=1
+        <if test="commodity_price_adjust_id != null">
+            and commodity_price_adjust_detail.commodity_price_adjust_id = #{commodity_price_adjust_id}
+        </if>
+        <if test="commodity_id != null">
+            and commodity_price_adjust_detail.commodity_id = #{commodity_id}
+        </if>
+        <if test="price_adjust_check_status != null">
+            and commodity_price_adjust_detail.price_adjust_check_status = #{price_adjust_check_status}
+        </if>
+        <if test="price_adjust_enable != null">
+            and commodity_price_adjust_detail.price_adjust_enable = #{price_adjust_enable}
+        </if>
+        <if test="commodityPriceAdjustDetailIds != null">
+            and commodity_price_adjust_detail.commodity_price_adjust_detail_id in
+            <foreach item="item" index="index" collection="commodityPriceAdjustDetailIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

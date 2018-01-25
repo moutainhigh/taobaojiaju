@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.category.CategoryExtendMapper">
+
+    <insert id="createCategory" parameterType="com.xinshan.model.Category" keyProperty="category_id" useGeneratedKeys="true">
+        insert into category (category_id, category_parent_id,
+          category_name, category_code, category_sort,
+          customize_attribute)
+        values (#{category_id,jdbcType=INTEGER}, #{category_parent_id,jdbcType=INTEGER},
+          #{category_name,jdbcType=VARCHAR}, #{category_code,jdbcType=VARCHAR}, #{category_sort,jdbcType=INTEGER},
+          #{customize_attribute,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="createCategoryAttribute" parameterType="com.xinshan.model.CategoryAttribute" useGeneratedKeys="true" keyProperty="category_attribute_id">
+        insert into category_attribute (category_attribute_id, category_attribute_type,
+          category_attribute_name, category_attribute_order,
+          category_id, category_attribute_value
+          )
+        values (#{category_attribute_id,jdbcType=INTEGER}, #{category_attribute_type,jdbcType=INTEGER},
+          #{category_attribute_name,jdbcType=VARCHAR}, #{category_attribute_order,jdbcType=INTEGER},
+          #{category_id,jdbcType=INTEGER}, #{category_attribute_value,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <resultMap id="categoryResultMap" type="com.xinshan.model.extend.category.CategoryExtend"
+               extends="com.xinshan.dao.CategoryMapper.BaseResultMap">
+        <collection property="attributes" ofType="com.xinshan.model.CategoryAttribute">
+            <id column="category_attribute_id" property="category_attribute_id" jdbcType="INTEGER" />
+            <result column="category_attribute_type" property="category_attribute_type" jdbcType="INTEGER" />
+            <result column="category_attribute_name" property="category_attribute_name" jdbcType="VARCHAR" />
+            <result column="category_attribute_value" property="category_attribute_value" jdbcType="VARCHAR" />
+            <result column="category_attribute_order" property="category_attribute_order" jdbcType="INTEGER" />
+        </collection>
+    </resultMap>
+    <select id="categoryList" resultMap="categoryResultMap">
+        select * from category
+        left join category_attribute on category_attribute.category_id = category.category_id
+    </select>
+</mapper>

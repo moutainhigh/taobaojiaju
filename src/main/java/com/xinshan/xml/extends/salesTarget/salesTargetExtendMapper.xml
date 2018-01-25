@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.salesTarget.SalesTargetExtendMapper">
+
+    <insert id="createSalesTarget" parameterType="com.xinshan.model.SalesTarget" useGeneratedKeys="true" keyProperty="sales_target_id">
+        insert into sales_target (sales_target_id, position_id, sales_target_year,
+          sales_target_year_amount)
+        values (#{sales_target_id,jdbcType=INTEGER}, #{position_id,jdbcType=INTEGER}, #{sales_target_year,jdbcType=INTEGER},
+          #{sales_target_year_amount,jdbcType=DECIMAL})
+    </insert>
+
+    <insert id="createSalesTargetAmount" parameterType="com.xinshan.model.SalesTargetAmount" useGeneratedKeys="true" keyProperty="sales_target_amount_id">
+        insert into sales_target_amount (sales_target_amount_id, sales_target_id,
+          sales_target_month, sales_target_amount
+          )
+        values (#{sales_target_amount_id,jdbcType=INTEGER}, #{sales_target_id,jdbcType=INTEGER},
+          #{sales_target_month,jdbcType=INTEGER}, #{sales_target_amount,jdbcType=DECIMAL}
+          )
+    </insert>
+
+    <insert id="createSalesTargetAnalysis" parameterType="com.xinshan.model.SalesTargetAnalysis" useGeneratedKeys="true" keyProperty="sales_target_analysis_id">
+        insert into sales_target_analysis (sales_target_analysis_id, sales_target_id,
+          sales_target_amount_id, sales_amount, sales_add_up_amount,
+          sales_add_up_target)
+        values (#{sales_target_analysis_id,jdbcType=INTEGER}, #{sales_target_id,jdbcType=INTEGER},
+          #{sales_target_amount_id,jdbcType=INTEGER}, #{sales_amount,jdbcType=DECIMAL}, #{sales_add_up_amount,jdbcType=DECIMAL},
+          #{sales_add_up_target,jdbcType=DECIMAL})
+    </insert>
+
+    <select id="salesTargetIds" parameterType="com.xinshan.pojo.salesTarget.SalesTargetSearchOption" resultType="java.lang.Integer">
+        select DISTINCT sales_target.sales_target_id
+        from sales_target
+        left join position on sales_target.position_id = position.position_id
+        left join sales_target_amount on sales_target.sales_target_id = sales_target_amount.sales_target_id
+        where 1=1
+        <include refid="salesTargetQuery"/>
+        order by sales_target.position_id asc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countSalesTarget" parameterType="com.xinshan.pojo.salesTarget.SalesTargetSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT sales_target.sales_target_id)
+        from sales_target
+        left join position on sales_target.position_id = position.position_id
+        left join sales_target_amount on sales_target.sales_target_id = sales_target_amount.sales_target_id
+        where 1=1
+        <include refid="salesTargetQuery"/>
+    </select>
+    <sql id="salesTargetQuery">
+        <if test="sales_target_year != null">
+            and sales_target.sales_target_year = #{sales_target_year}
+        </if>
+        <if test="position_id != null">
+            and sales_target.position_id = #{position_id}
+        </if>
+    </sql>
+
+    <resultMap id="salesTargetResultMap" type="com.xinshan.model.extend.salesTarget.SalesTargetExtend"
+               extends="com.xinshan.dao.SalesTargetMapper.BaseResultMap">
+        <association property="position" javaType="com.xinshan.model.Position"
+                     resultMap="com.xinshan.dao.PositionMapper.BaseResultMap"/>
+        <collection property="targetAmounts" ofType="com.xinshan.model.SalesTargetAmount"
+                    resultMap="com.xinshan.dao.SalesTargetAmountMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="salesTargetList" parameterType="com.xinshan.pojo.salesTarget.SalesTargetSearchOption" resultMap="salesTargetResultMap">
+        select *
+        from sales_target
+        left join position on sales_target.position_id = position.position_id
+        left join sales_target_amount on sales_target.sales_target_id = sales_target_amount.sales_target_id
+        where sales_target.sales_target_id in
+        <foreach item="item" index="index" collection="salesTargetIds"  open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        order by sales_target.position_id asc, sales_target_amount.sales_target_month asc
+    </select>
+
+    <resultMap id="targetAnalysisResultMap" type="com.xinshan.model.extend.salesTarget.SalesTargetAnalysisExtend"
+               extends="com.xinshan.dao.SalesTargetAnalysisMapper.BaseResultMap">
+        <association property="position" javaType="com.xinshan.model.Position"
+                     resultMap="com.xinshan.dao.PositionMapper.BaseResultMap"/>
+        <association property="salesTarget" javaType="com.xinshan.model.SalesTarget"
+                     resultMap="com.xinshan.dao.SalesTargetMapper.BaseResultMap"/>
+        <association property="salesTargetAmount" javaType="com.xinshan.model.SalesTargetAmount"
+                     resultMap="com.xinshan.dao.SalesTargetAmountMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="targetAnalysisList" parameterType="com.xinshan.pojo.salesTarget.SalesTargetSearchOption" resultMap="targetAnalysisResultMap">
+        select * from sales_target_analysis
+        left join sales_target on sales_target_analysis.sales_target_id = sales_target.sales_target_id
+        left join position on sales_target.position_id = position.position_id
+        left join sales_target_amount on sales_target_amount.sales_target_amount_id = sales_target_analysis.sales_target_amount_id
+        WHERE 1=1
+        <include refid="analysisQuery"/>
+        order by sales_target.position_id asc, sales_target.sales_target_year desc, sales_target_amount.sales_target_month asc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="analysisQuery">
+        <if test="position_id != null">
+            and sales_target.position_id = #{position_id}
+        </if>
+        <if test="sales_target_year != null">
+            and sales_target.sales_target_year = #{sales_target_year}
+        </if>
+        <if test="sales_target_month != null">
+            and sales_target_amount.sales_target_month = #{sales_target_month}
+        </if>
+    </sql>
+    <select id="countAnalysis" parameterType="com.xinshan.pojo.salesTarget.SalesTargetSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT sales_target_analysis.sales_target_analysis_id) from sales_target_analysis
+        left join sales_target on sales_target_analysis.sales_target_id = sales_target.sales_target_id
+        left join position on sales_target.position_id = position.position_id
+        left join sales_target_amount on sales_target_amount.sales_target_amount_id = sales_target_analysis.sales_target_amount_id
+        WHERE 1=1
+        <include refid="analysisQuery"/>
+    </select>
+</mapper>

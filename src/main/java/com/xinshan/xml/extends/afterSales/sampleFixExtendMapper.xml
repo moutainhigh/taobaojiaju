@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.afterSales.SampleFixExtendMapper">
+
+    <insert id="createSampleFix" parameterType="com.xinshan.model.CommoditySampleFix" useGeneratedKeys="true" keyProperty="sample_fix_id">
+        insert into commodity_sample_fix (sample_fix_id, fix_create_date,
+          fix_create_employee_code, fix_create_employee_name,
+          order_fee_check_status, sample_fix_settlement_status,
+          supplier_id, sample_fix_code, fix_desc,
+          order_fee_ids)
+        values (#{sample_fix_id,jdbcType=INTEGER}, #{fix_create_date,jdbcType=TIMESTAMP},
+          #{fix_create_employee_code,jdbcType=VARCHAR}, #{fix_create_employee_name,jdbcType=VARCHAR},
+          #{order_fee_check_status,jdbcType=INTEGER}, #{sample_fix_settlement_status,jdbcType=INTEGER},
+          #{supplier_id,jdbcType=INTEGER}, #{sample_fix_code,jdbcType=VARCHAR}, #{fix_desc,jdbcType=LONGVARCHAR},
+          #{order_fee_ids,jdbcType=LONGVARCHAR})
+    </insert>
+    <select id="sampleFixCode" resultType="java.lang.String">
+        select max(sample_fix_code) from commodity_sample_fix where sample_fix_code regexp #{param}
+    </select>
+    <insert id="createSampleFixDetail" parameterType="com.xinshan.model.CommoditySampleFixDetail" useGeneratedKeys="true" keyProperty="commodity_sample_fix_detail_id">
+        insert into commodity_sample_fix_detail (commodity_sample_fix_detail_id, sample_fix_id,
+          commodity_id, fix_detail_status, fix_detail_remark
+          )
+        values (#{commodity_sample_fix_detail_id,jdbcType=INTEGER}, #{sample_fix_id,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER}, #{fix_detail_status,jdbcType=INTEGER}, #{fix_detail_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <resultMap id="sampleFixResultMap" type="com.xinshan.model.extend.afterSales.SampleFixExtend"
+               extends="com.xinshan.dao.CommoditySampleFixMapper.BaseResultMap">
+            <association property="supplier" javaType="com.xinshan.model.Supplier" resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="sampleFixList" parameterType="com.xinshan.pojo.afterSales.SampleFixSearchOption" resultMap="sampleFixResultMap">
+        SELECT
+        commodity_sample_fix.*
+        ,supplier.supplier_name,supplier.contacts
+        FROM commodity_sample_fix
+        left join supplier on commodity_sample_fix.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="sample_fix_id != null">
+            and sample_fix_id = #{sample_fix_id}
+        </if>
+        <if test="param != null">
+            and commodity_sample_fix.sample_fix_code like "%"#{param}"%"
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (commodity_sample_fix.fix_create_date &gt;= #{startDate} and commodity_sample_fix.fix_create_date &lt; #{endDate})
+        </if>
+        order by sample_fix_id desc
+        <if test="start != null and limit != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countSampleFix" parameterType="com.xinshan.pojo.afterSales.SampleFixSearchOption" resultType="java.lang.Integer">
+        SELECT count(*) FROM commodity_sample_fix
+        left join supplier on commodity_sample_fix.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="sample_fix_id != null">
+            and sample_fix_id = #{sample_fix_id}
+        </if>
+        <if test="param != null">
+            and commodity_sample_fix.sample_fix_code like "%"#{param}"%"
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (commodity_sample_fix.fix_create_date &gt;= #{startDate} and commodity_sample_fix.fix_create_date &lt; #{endDate})
+        </if>
+    </select>
+
+    <resultMap id="sampleFixDetailResultMap" type="com.xinshan.model.extend.afterSales.SampleFixDetailExtend"
+               extends="com.xinshan.dao.CommoditySampleFixDetailMapper.BaseResultMap">
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="sampleFixDetails" parameterType="java.lang.Integer" resultMap="sampleFixDetailResultMap">
+        select
+        commodity_sample_fix_detail.*,commodity.commodity_name,commodity.commodity_code
+        from commodity_sample_fix_detail
+        left join commodity on commodity_sample_fix_detail.commodity_id = commodity.commodity_id
+        where commodity_sample_fix_detail.sample_fix_id = #{sample_fix_id}
+    </select>
+
+</mapper>

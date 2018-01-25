@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.commodity.SampleOutExtendMapper">
+    <insert id="createSampleOut" parameterType="com.xinshan.model.CommoditySampleOut" useGeneratedKeys="true" keyProperty="commodity_sample_out_id">
+        insert into commodity_sample_out (commodity_sample_out_id, sample_out_create_date,
+          sample_out_create_employee_code, sample_out_create_employee_name,
+          supplier_id, inventory_out_id, sample_out_check_status,
+          commodity_sample_out_status, sample_out_code,
+          sample_out_remark)
+        values (#{commodity_sample_out_id,jdbcType=INTEGER}, #{sample_out_create_date,jdbcType=TIMESTAMP},
+          #{sample_out_create_employee_code,jdbcType=VARCHAR}, #{sample_out_create_employee_name,jdbcType=VARCHAR},
+          #{supplier_id,jdbcType=INTEGER}, #{inventory_out_id,jdbcType=INTEGER}, #{sample_out_check_status,jdbcType=INTEGER},
+          #{commodity_sample_out_status,jdbcType=INTEGER}, #{sample_out_code,jdbcType=VARCHAR},
+          #{sample_out_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createSampleOutDetail" parameterType="com.xinshan.model.CommoditySampleOutDetail" useGeneratedKeys="true" keyProperty="commodity_sample_out_detail_id">
+        insert into commodity_sample_out_detail (commodity_sample_out_detail_id, commodity_sample_out_id,
+          commodity_id, commodity_sample_out_num,
+          inventory_out_status, inventory_out_commodity_id,
+          commodity_num_id)
+        values (#{commodity_sample_out_detail_id,jdbcType=INTEGER}, #{commodity_sample_out_id,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER}, #{commodity_sample_out_num,jdbcType=INTEGER},
+          #{inventory_out_status,jdbcType=INTEGER}, #{inventory_out_commodity_id,jdbcType=INTEGER},
+          #{commodity_num_id,jdbcType=INTEGER})
+    </insert>
+
+    <select id="sampleOutCode" resultType="java.lang.String">
+        select max(sample_out_code) from commodity_sample_out where sample_out_code regexp #{param}
+    </select>
+
+    <select id="sampleOutIds" parameterType="com.xinshan.pojo.commodity.SampleOutSearchOption" resultType="java.lang.Integer">
+        select
+        DISTINCT commodity_sample_out.commodity_sample_out_id
+        from commodity_sample_out
+        left join commodity_sample_out_detail on commodity_sample_out.commodity_sample_out_id = commodity_sample_out_detail.commodity_sample_out_id
+        left join supplier on commodity_sample_out.supplier_id = supplier.supplier_id
+        left join commodity on commodity_sample_out_detail.commodity_id = commodity.commodity_id
+        where 1=1
+        <include refid="sampleOutQuery"/>
+        order BY commodity_sample_out.commodity_sample_out_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <resultMap id="sampleOutResultMap" type="com.xinshan.model.extend.commodity.SampleOutExtend" extends="com.xinshan.dao.CommoditySampleOutMapper.BaseResultMap">
+        <association property="supplier" javaType="com.xinshan.model.Supplier" resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <collection property="sampleOutDetails" ofType="com.xinshan.model.extend.commodity.SampleOutDetailExtend">
+            <id column="commodity_sample_out_detail_id" jdbcType="INTEGER" property="commodity_sample_out_detail_id" />
+            <result column="commodity_sample_out_id" jdbcType="INTEGER" property="commodity_sample_out_id" />
+            <result column="commodity_id" jdbcType="INTEGER" property="commodity_id" />
+            <result column="commodity_sample_out_num" jdbcType="INTEGER" property="commodity_sample_out_num" />
+            <result column="inventory_out_status" jdbcType="INTEGER" property="inventory_out_status" />
+            <result column="inventory_out_commodity_id" jdbcType="INTEGER" property="inventory_out_commodity_id" />
+            <result column="commodity_num_id" jdbcType="INTEGER" property="commodity_num_id" />
+        </collection>
+    </resultMap>
+    <select id="sampleOut" parameterType="java.lang.Integer" resultMap="sampleOutResultMap">
+        select
+        commodity_sample_out.*
+        ,supplier.supplier_name,supplier.contacts
+        ,commodity_sample_out_detail.*
+        from commodity_sample_out
+        left join commodity_sample_out_detail on commodity_sample_out.commodity_sample_out_id = commodity_sample_out_detail.commodity_sample_out_id
+        left join supplier on commodity_sample_out.supplier_id = supplier.supplier_id
+        where commodity_sample_out.commodity_sample_out_id = #{commodity_sample_out_id}
+    </select>
+    <select id="countSampleOut" parameterType="com.xinshan.pojo.commodity.SampleOutSearchOption" resultType="java.lang.Integer">
+        select
+        count(DISTINCT commodity_sample_out.commodity_sample_out_id)
+        from commodity_sample_out
+        left join commodity_sample_out_detail on commodity_sample_out.commodity_sample_out_id = commodity_sample_out_detail.commodity_sample_out_id
+        left join supplier on commodity_sample_out.supplier_id = supplier.supplier_id
+        left join commodity on commodity_sample_out_detail.commodity_id = commodity.commodity_id
+        where 1=1
+        <include refid="sampleOutQuery"/>
+    </select>
+    <sql id="sampleOutQuery">
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            OR commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="commodity_sample_out_id != null">
+            and commodity_sample_out.commodity_sample_out_id = #{commodity_sample_out_id}
+        </if>
+        <if test="commodity_id != null">
+            and commodity_sample_out_detail.commodity_id = #{commodity_id}
+        </if>
+        <if test="supplier_id != null">
+            and commodity_sample_out.supplier_id = #{supplier_id}
+        </if>
+        <if test="supplierIdList != null">
+            and commodity_sample_out.supplier_id in
+            <foreach collection="supplierIdList" index="index" separator="," open="(" close=")" item="item">
+                #{item}
+            </foreach>
+        </if>
+        <if test="record_employee_code != null">
+            and commodity_sample_out.sample_out_create_employee_code = #{record_employee_code}
+        </if>
+    </sql>
+    <delete id="deleteSampleOutDetail" parameterType="java.lang.Integer">
+        delete from commodity_sample_out_detail where commodity_sample_out_id = #{commodity_sample_out_id}
+    </delete>
+</mapper>

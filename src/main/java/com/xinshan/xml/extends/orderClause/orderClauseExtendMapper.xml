@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.orderClause.OrderClauseExtendMapper">
+    <insert id="createOrderClause" parameterType="com.xinshan.model.OrderClause" useGeneratedKeys="true" keyProperty="order_clause_id">
+        insert into order_clause (order_clause_id, order_clause_type,
+          order_clause)
+        values (#{order_clause_id,jdbcType=INTEGER}, #{order_clause_type,jdbcType=INTEGER},
+          #{order_clause,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <select id="orderClauseList" parameterType="com.xinshan.pojo.orderClause.OrderClauseSearchOption" resultType="com.xinshan.model.OrderClause">
+        select * from order_clause
+        where 1=1
+        <if test="order_clause_type != null">
+            and order_clause_type = #{order_clause_type}
+        </if>
+    </select>
+</mapper>

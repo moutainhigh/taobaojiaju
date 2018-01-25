@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.statistics.EmployeePerformanceExtendMapper" >
+    <insert id="createPerformance" parameterType="com.xinshan.model.EmployeePerformance" useGeneratedKeys="true" keyProperty="employee_performance_id">
+        insert into employee_performance (employee_performance_id, performance_year,
+          performance_month, employee_code, order_commodity_amount,
+          order_commodity_num, order_num, order_return_commodity_amount,
+          order_return_commodity_num, order_return_commodity_add_amount,
+          order_return_commodity_add_num, gift_commodity_amount,
+          gift_commodity_num, gift_return_commodity_amount,
+          gift_return_commodity_num, sell_amount,
+          add_up_sell_amount, add_up_order_num, add_up_commodity_num
+          )
+        values (#{employee_performance_id,jdbcType=INTEGER}, #{performance_year,jdbcType=INTEGER},
+          #{performance_month,jdbcType=INTEGER}, #{employee_code,jdbcType=VARCHAR}, #{order_commodity_amount,jdbcType=DECIMAL},
+          #{order_commodity_num,jdbcType=INTEGER}, #{order_num,jdbcType=INTEGER}, #{order_return_commodity_amount,jdbcType=DECIMAL},
+          #{order_return_commodity_num,jdbcType=INTEGER}, #{order_return_commodity_add_amount,jdbcType=DECIMAL},
+          #{order_return_commodity_add_num,jdbcType=INTEGER}, #{gift_commodity_amount,jdbcType=DECIMAL},
+          #{gift_commodity_num,jdbcType=INTEGER}, #{gift_return_commodity_amount,jdbcType=DECIMAL},
+          #{gift_return_commodity_num,jdbcType=INTEGER}, #{sell_amount,jdbcType=DECIMAL},
+          #{add_up_sell_amount,jdbcType=DECIMAL}, #{add_up_order_num,jdbcType=INTEGER}, #{add_up_commodity_num,jdbcType=INTEGER}
+          )
+    </insert>
+
+    <resultMap id="performanceResultMap" type="com.xinshan.model.extend.statistics.Performance"
+               extends="com.xinshan.dao.EmployeePerformanceMapper.BaseResultMap">
+        <association property="employee" javaType="com.xinshan.model.Employee">
+            <result column="employee_code" property="employee_code" jdbcType="VARCHAR"/>
+            <result column="employee_name" property="employee_name" jdbcType="VARCHAR"/>
+            <result column="employee_status" property="employee_status" jdbcType="INTEGER"/>
+        </association>
+    </resultMap>
+    <select id="performanceList" parameterType="com.xinshan.pojo.statistics.PerformanceSearchOption" resultMap="performanceResultMap">
+        select employee_performance.*, employee.employee_code as employee_code, employee.employee_name as employee_name, employee.employee_status as employee_status
+        from employee_performance
+        left join employee on employee_performance.employee_code = employee.employee_code
+        where 1=1
+        <include refid="performanceQuery"/>
+        order by employee_performance.performance_year, employee_performance.performance_month
+        <if test="limit != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="performanceQuery">
+        <if test="employee_code != null">
+            and employee_performance.employee_code = #{employee_code}
+        </if>
+        <if test="performance_month != null">
+            and employee_performance.performance_month = #{performance_month}
+        </if>
+        <if test="performance_year != null">
+            and employee_performance.performance_year = #{performance_year}
+        </if>
+        <if test="sell_amount != null">
+            and employee_performance.sell_amount &gt; #{sell_amount}
+        </if>
+    </sql>
+    <select id="countPerformance" parameterType="com.xinshan.pojo.statistics.PerformanceSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT employee_performance.employee_performance_id)
+        from employee_performance
+        left join employee on employee_performance.employee_code = employee.employee_code
+        where 1=1
+        <include refid="performanceQuery"/>
+    </select>
+</mapper>

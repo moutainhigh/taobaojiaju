@@ -1,0 +1,926 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.order.OrderExtendMapper">
+    <select id="getOrderById" resultType="com.xinshan.model.Order" parameterType="java.lang.Integer">
+        select * from `order` where order_id = #{order_id}
+    </select>
+    <insert id="createOrder" parameterType="com.xinshan.model.Order" useGeneratedKeys="true" keyProperty="order_id">
+        insert into `order` (order_id, order_date, order_code,
+          record_employee_code, record_employee_name,
+          total_num, total_price, record_date,
+          customer_name, customer_phone_number, delivery_address,
+          delivery_type_id, delivery_date, order_status,
+          seller, employee_code, employee_name,
+          trans_purchase, order_paper_code, order_step,
+          position_id, order_total_price, preferential_amount,
+          return_status, order_remark, order_pay_ids
+          )
+        values (#{order_id,jdbcType=INTEGER}, #{order_date,jdbcType=TIMESTAMP}, #{order_code,jdbcType=VARCHAR},
+          #{record_employee_code,jdbcType=VARCHAR}, #{record_employee_name,jdbcType=VARCHAR},
+          #{total_num,jdbcType=INTEGER}, #{total_price,jdbcType=DECIMAL}, #{record_date,jdbcType=TIMESTAMP},
+          #{customer_name,jdbcType=VARCHAR}, #{customer_phone_number,jdbcType=VARCHAR}, #{delivery_address,jdbcType=LONGVARCHAR},
+          #{delivery_type_id,jdbcType=INTEGER}, #{delivery_date,jdbcType=TIMESTAMP}, #{order_status,jdbcType=INTEGER},
+          #{seller,jdbcType=VARCHAR}, #{employee_code,jdbcType=VARCHAR}, #{employee_name,jdbcType=VARCHAR},
+          #{trans_purchase,jdbcType=INTEGER}, #{order_paper_code,jdbcType=VARCHAR}, #{order_step,jdbcType=INTEGER},
+          #{position_id,jdbcType=INTEGER}, #{order_total_price,jdbcType=DECIMAL}, #{preferential_amount,jdbcType=DECIMAL},
+          #{return_status,jdbcType=INTEGER}, #{order_remark,jdbcType=LONGVARCHAR}, #{order_pay_ids,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <update id="updateOrder" parameterType="com.xinshan.model.Order">
+        update `order`
+        set order_date = #{order_date,jdbcType=TIMESTAMP},
+          order_code = #{order_code,jdbcType=VARCHAR},
+          record_employee_code = #{record_employee_code,jdbcType=VARCHAR},
+          record_employee_name = #{record_employee_name,jdbcType=VARCHAR},
+          total_num = #{total_num,jdbcType=INTEGER},
+          total_price = #{total_price,jdbcType=DECIMAL},
+          record_date = #{record_date,jdbcType=TIMESTAMP},
+          customer_name = #{customer_name,jdbcType=VARCHAR},
+          customer_phone_number = #{customer_phone_number,jdbcType=VARCHAR},
+          customer_second_phone = #{customer_second_phone,jdbcType=LONGVARCHAR},
+          delivery_address = #{delivery_address,jdbcType=LONGVARCHAR},
+          delivery_type_id = #{delivery_type_id,jdbcType=INTEGER},
+          delivery_date = #{delivery_date,jdbcType=TIMESTAMP},
+          order_status = #{order_status,jdbcType=INTEGER},
+          seller = #{seller,jdbcType=VARCHAR},
+          employee_code = #{employee_code,jdbcType=VARCHAR},
+          employee_name = #{employee_name,jdbcType=VARCHAR},
+          trans_purchase = #{trans_purchase,jdbcType=INTEGER},
+          order_paper_code = #{order_paper_code,jdbcType=VARCHAR},
+          order_step = #{order_step,jdbcType=INTEGER},
+          position_id = #{position_id,jdbcType=INTEGER},
+          order_total_price = #{order_total_price,jdbcType=DECIMAL},
+          preferential_amount = #{preferential_amount,jdbcType=DECIMAL},
+          return_status = #{return_status,jdbcType=INTEGER},
+          order_remark = #{order_remark,jdbcType=LONGVARCHAR},
+          order_pay_ids = #{order_pay_ids,jdbcType=LONGVARCHAR}
+        where order_id = #{order_id,jdbcType=INTEGER}
+    </update>
+
+    <insert id="createCarryFee" parameterType="com.xinshan.model.OrderCarryFee" useGeneratedKeys="true" keyProperty="order_carry_fee_id">
+        insert into order_carry_fee (order_carry_fee_id, order_carry_fee,
+          order_id, order_return_id)
+        values (#{order_carry_fee_id,jdbcType=INTEGER}, #{order_carry_fee,jdbcType=DECIMAL},
+          #{order_id,jdbcType=INTEGER}, #{order_return_id,jdbcType=INTEGER})
+    </insert>
+    <delete id="deleteOrderCommodityByOrderId" parameterType="java.lang.Integer">
+        delete from order_commodity where order_id = #{order_id}
+    </delete>
+    <delete id="deleteCarryFeeByOrderId" parameterType="java.lang.Integer">
+        delete from order_carry_fee where order_id = #{order_id}
+    </delete>
+    <delete id="deleteCarryFeeByOrderReturnId" parameterType="java.lang.Integer">
+        delete from order_carry_fee where order_return_id = #{order_return_id}
+    </delete>
+    <delete id="deleteOrderCommodityValueAddedCard" parameterType="java.lang.Integer">
+        delete from order_commodity_value_added_card where order_commodity_id = #{order_commodity_id}
+    </delete>
+    <insert id="createOrderCommodity" parameterType="com.xinshan.model.OrderCommodity" useGeneratedKeys="true" keyProperty="order_commodity_id">
+        insert into order_commodity (order_commodity_id, commodity_id,
+          order_id, unit_price, commodity_total_price,
+          bargain_price, sample, discount,
+          order_commodity_status, return_commodity,
+          order_commodity_return_status, revision_fee,
+          activity_commodity_id, commodity_num, order_commodity_return_num,
+          order_commodity_num, order_commodity_type,
+          order_commodity_remark, revision_size
+          )
+        values (#{order_commodity_id,jdbcType=INTEGER}, #{commodity_id,jdbcType=INTEGER},
+          #{order_id,jdbcType=INTEGER}, #{unit_price,jdbcType=DECIMAL}, #{commodity_total_price,jdbcType=DECIMAL},
+          #{bargain_price,jdbcType=DECIMAL}, #{sample,jdbcType=INTEGER}, #{discount,jdbcType=DECIMAL},
+          #{order_commodity_status,jdbcType=INTEGER}, #{return_commodity,jdbcType=INTEGER},
+          #{order_commodity_return_status,jdbcType=INTEGER}, #{revision_fee,jdbcType=DECIMAL},
+          #{activity_commodity_id,jdbcType=INTEGER}, #{commodity_num,jdbcType=INTEGER}, #{order_commodity_return_num,jdbcType=INTEGER},
+          #{order_commodity_num,jdbcType=INTEGER}, #{order_commodity_type,jdbcType=INTEGER},
+          #{order_commodity_remark,jdbcType=LONGVARCHAR}, #{revision_size,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <insert id="createOrderCommodityValueAddedCard" parameterType="com.xinshan.model.OrderCommodityValueAddedCard"
+            useGeneratedKeys="true" keyProperty="order_commodity_value_added_card_id">
+        insert into order_commodity_value_added_card (order_commodity_value_added_card_id, order_commodity_id,
+          card_code, card_amount, card_real_amount
+          )
+        values (#{order_commodity_value_added_card_id,jdbcType=INTEGER}, #{order_commodity_id,jdbcType=INTEGER},
+          #{card_code,jdbcType=INTEGER}, #{card_amount,jdbcType=DECIMAL}, #{card_real_amount,jdbcType=DECIMAL}
+          )
+    </insert>
+    <select id="todayOrderNum" resultType="java.lang.String">
+        select max(order_code) from `order` where order_code regexp "O"+#{dateStr}+"[0-9]{3}"
+    </select>
+    <resultMap id="orderResultMap" type="com.xinshan.model.extend.order.OrderExtend"
+               extends="com.xinshan.dao.OrderMapper.BaseResultMap">
+        <result column="gold_egg" property="gold_egg" jdbcType="INTEGER"/>
+        <association property="position" javaType="com.xinshan.model.Position"
+                     resultMap="com.xinshan.dao.PositionMapper.BaseResultMap"/>
+        <collection property="orderCarryFees" ofType="com.xinshan.model.OrderCarryFee"
+                     resultMap="com.xinshan.dao.OrderCarryFeeMapper.BaseResultMap"/>
+        <collection property="orderCommodities" ofType="com.xinshan.model.extend.order.OrderCommodityExtend">
+            <id column="order_commodity_id" jdbcType="INTEGER" property="order_commodity_id" />
+            <result column="commodity_id" jdbcType="INTEGER" property="commodity_id" />
+            <result column="order_id" jdbcType="INTEGER" property="order_id" />
+            <result column="unit_price" jdbcType="DECIMAL" property="unit_price" />
+            <result column="commodity_total_price" jdbcType="DECIMAL" property="commodity_total_price" />
+            <result column="bargain_price" jdbcType="DECIMAL" property="bargain_price" />
+            <result column="sample" jdbcType="INTEGER" property="sample" />
+            <result column="discount" jdbcType="DECIMAL" property="discount" />
+            <result column="order_commodity_status" jdbcType="INTEGER" property="order_commodity_status" />
+            <result column="return_commodity" jdbcType="INTEGER" property="return_commodity" />
+            <result column="order_commodity_return_status" jdbcType="INTEGER" property="order_commodity_return_status" />
+            <result column="revision_fee" jdbcType="DECIMAL" property="revision_fee" />
+            <result column="revision_size" jdbcType="LONGVARCHAR" property="revision_size" />
+            <result column="activity_commodity_id" jdbcType="INTEGER" property="activity_commodity_id" />
+            <result column="commodity_num" jdbcType="INTEGER" property="commodity_num" />
+            <result column="order_commodity_return_num" jdbcType="INTEGER" property="order_commodity_return_num" />
+            <result column="order_commodity_num" jdbcType="INTEGER" property="order_commodity_num" />
+            <result column="order_commodity_remark" jdbcType="LONGVARCHAR" property="order_commodity_remark" />
+            <result column="order_commodity_type" jdbcType="LONGVARCHAR" property="order_commodity_type" />
+        </collection>
+    </resultMap>
+    <select id="orderList" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultMap="orderResultMap">
+        select `order`.*,
+        order_commodity.*,
+        order_carry_fee.*,
+        `position`.position_name
+        from `order`
+        left join order_commodity on `order`.order_id = order_commodity.order_id
+        left join order_carry_fee on `order`.order_id = order_carry_fee.order_id
+        left join `position` on `order`.position_id = `position`.position_id
+        where 1=1
+        <if test="orderIds != null">
+            and `order`.order_id in
+            <foreach item="item" index="index" collection="orderIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by `order`.order_status desc, `order`.order_code desc, `order`.record_date desc
+    </select>
+
+    <select id="orderGiftNum" resultType="java.lang.Integer">
+        select count(*) from gift where gift.order_id = #{order_id}
+    </select>
+    <select id="goldEggNum" resultType="java.lang.Integer">
+        select count(*) from gold_egg where gold_egg.order_id = #{order_id}
+    </select>
+    <select id="orderIds" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.lang.Integer">
+        select distinct `order`.order_id from `order`
+        left join order_commodity on `order`.order_id = order_commodity.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or `order`.order_paper_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="user_phone != null">
+            and `order`.customer_phone_number = #{user_phone}
+        </if>
+        <if test="order_step != null">
+            and find_in_set(`order`.order_step, #{order_step})
+        </if>
+        <if test="order_status != null">
+            and `order`.order_status = #{order_status}
+        </if>
+        <if test="orderStatuses != null">
+            and find_in_set(`order`.order_status,#{orderStatuses})
+        </if>
+        <if test="orderIds != null">
+            and `order`.order_id in
+            <foreach item="item" index="index" collection="orderIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.delivery_date and `order`.delivery_date &lt; #{endDate})
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="positionIds != null and record_employee_code != null">
+            and (find_in_set(`order`.position_id, #{positionIds})
+            or `order`.record_employee_code = #{record_employee_code}
+            or `order`.employee_code = #{record_employee_code}
+            )
+        </if>
+        <if test="record_employee_code != null">
+            and `order`.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and (
+            `order`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            or
+            `order`.employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>)
+        </if>
+        <if test="customer_phone_number != null">
+            and `order`.customer_phone_number = #{customer_phone_number}
+        </if>
+        <if test="total_price != null">
+            and `order`.total_price &gt;= #{total_price}
+        </if>
+        <if test="trans_purchase != null">
+            and `order`.trans_purchase = #{trans_purchase}
+        </if>
+        <if test="supplierIds != null">
+            and commodity.supplier_id in
+            <foreach collection="supplierIds" index="index" item="item" separator="," open="(" close=")">
+                #{supplier_id}
+            </foreach>
+        </if>
+        <if test="gold_egg != null">
+            and (select count(*) from gold_egg where `order`.order_id = gold_egg.order_id) > 0
+        </if>
+        order by `order`.order_status desc,`order`.order_code desc, `order`.record_date desc
+        <if test="limit!=null and start!=null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countOrder" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.lang.Integer">
+        select count(distinct `order`.order_id) from `order`
+        left join order_commodity on `order`.order_id = order_commodity.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or `order`.order_paper_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_step != null">
+            and find_in_set(`order`.order_step, #{order_step})
+        </if>
+        <if test="order_status != null">
+            and `order`.order_status = #{order_status}
+        </if>
+        <if test="orderStatuses != null">
+            and find_in_set(`order`.order_status,#{orderStatuses})
+        </if>
+        <if test="orderIds != null">
+            and `order`.order_id in
+            <foreach item="item" index="index" collection="orderIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.delivery_date and `order`.delivery_date &lt; #{endDate})
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="positionIds != null">
+            and find_in_set(`order`.position_id, #{positionIds})
+        </if>
+        <if test="positionIds != null and record_employee_code != null">
+            and (find_in_set(`order`.position_id, #{positionIds})
+            or `order`.record_employee_code = #{record_employee_code}
+            or `order`.employee_code = #{record_employee_code}
+            )
+        </if>
+        <if test="record_employee_code != null">
+            and `order`.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and (
+            `order`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            or
+            `order`.employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>)
+        </if>
+        <if test="customer_phone_number != null">
+            and `order`.customer_phone_number = #{customer_phone_number}
+        </if>
+        <if test="total_price != null">
+            and `order`.total_price &gt;= #{total_price}
+        </if>
+    </select>
+
+    <update id="deleteOrder" parameterType="java.lang.Integer">
+        update `order` set order_status = 0 where order_id = #{order_id}
+    </update>
+
+    <update id="updateOrderCode" parameterType="com.xinshan.model.Order">
+        update `order` set order_code = #{order_code} where order_id = #{order_id}
+    </update>
+
+    <select id="updateTransPurchase" parameterType="com.xinshan.model.extend.order.OrderExtend">
+        update `order` set trans_purchase = #{trans_purchase} where order_id = #{order_id}
+    </select>
+
+    <select id="getOrderCommodities" resultType="com.xinshan.model.OrderCommodity">
+        select * from order_commodity where order_id = #{order_id}
+    </select>
+
+    <insert id="createOrderCommodityReturn" parameterType="com.xinshan.model.OrderCommodityReturn" useGeneratedKeys="true" keyProperty="order_commodity_return_id">
+        insert into order_commodity_return (order_commodity_return_id, order_id,
+          order_commodity_ids, order_commodity_return_date,
+          return_employee_code, return_employee_name,
+          return_reason, return_num)
+        values (#{order_commodity_return_id,jdbcType=INTEGER}, #{order_id,jdbcType=INTEGER},
+          #{order_commodity_ids,jdbcType=VARCHAR}, #{order_commodity_return_date,jdbcType=TIMESTAMP},
+          #{return_employee_code,jdbcType=VARCHAR}, #{return_employee_name,jdbcType=VARCHAR},
+          #{return_reason,jdbcType=VARCHAR}, #{return_num,jdbcType=INTEGER})
+    </insert>
+
+    <select id="orderCommodityReturns" resultType="com.xinshan.model.OrderCommodityReturn">
+        select * from order_commodity_return where order_id = #{order_id} order by order_commodity_return_date desc
+    </select>
+    <resultMap id="orderFeeStaticsResultMap" type="java.util.HashMap">
+        <result column="need_amount" property="need_amount"/>
+        <result column="pay_amount" property="pay_amount"/>
+        <result column="pay_source" property="pay_source"/>
+    </resultMap>
+    <!--concat(cast(order_pay_id as char), "&#45;&#45;", cast(pay_source as char))-->
+    <select id="orderFeeStatics" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultMap="orderFeeStaticsResultMap">
+        select
+        sum(a.need_amount) as need_amount
+        ,sum(a.pay_amount) as pay_amount
+        ,a.pay_source as pay_source
+        from
+        (select
+        order_pay.*
+        from `order`
+        /*left join order_pay on find_in_set(order_pay.order_pay_id, `order`.order_pay_ids)*/
+        left join order_pay on order_pay.order_id = `order`.order_id
+        left join order_commodity on order_pay.order_id = order_commodity.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        where 1=1
+        and order_pay.order_pay_type = 1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_status != null">
+            and `order`.order_status = #{order_status}
+        </if>
+        <if test="orderStatuses != null">
+            and find_in_set(`order`.order_status,#{orderStatuses})
+        </if>
+        <if test="orderIds != null">
+            and `order`.order_id in
+            <foreach item="item" index="index" collection="orderIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.delivery_date and `order`.delivery_date &lt; #{endDate})
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="positionIds != null">
+            and find_in_set(`order`.position_id, #{positionIds})
+        </if>
+        <if test="record_employee_code != null">
+            and `order`.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="positionIds != null and record_employee_code != null">
+            and (find_in_set(`order`.position_id, #{positionIds})
+            or `order`.record_employee_code = #{record_employee_code}
+            or `order`.employee_code = #{record_employee_code}
+            )
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and (
+            `order`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            or
+            `order`.employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>)
+        </if>
+        <if test="customer_phone_number != null">
+            and `order`.customer_phone_number = #{customer_phone_number}
+        </if>
+        group by order_pay.order_pay_id
+        ) as a
+        group by a.pay_source order by a.pay_source asc;
+    </select>
+    <select id="orderCarryFeeStatics" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.math.BigDecimal">
+        select sum(a.order_carry_fee)
+        from(
+        select
+        `order`.order_code, order_carry_fee.order_carry_fee
+        from order_carry_fee
+        left join `order` on `order`.order_id = order_carry_fee.order_id
+        left join order_commodity on order_carry_fee.order_id = order_commodity.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_status != null">
+            and `order`.order_status = #{order_status}
+        </if>
+        <if test="orderStatuses != null">
+            and find_in_set(`order`.order_status,#{orderStatuses})
+        </if>
+        <if test="orderIds != null">
+            and `order`.order_id in
+            <foreach item="item" index="index" collection="orderIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.delivery_date and `order`.delivery_date &lt; #{endDate})
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="positionIds != null">
+            and find_in_set(`order`.position_id, #{positionIds})
+        </if>
+        <if test="record_employee_code != null">
+            and `order`.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="positionIds != null and record_employee_code != null">
+            and (find_in_set(`order`.position_id, #{positionIds})
+            or `order`.record_employee_code = #{record_employee_code}
+            or `order`.employee_code = #{record_employee_code}
+            )
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and (
+            `order`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            or
+            `order`.employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>)
+        </if>
+        <if test="customer_phone_number != null">
+            and `order`.customer_phone_number = #{customer_phone_number}
+        </if>
+        group by order_carry_fee.order_carry_fee_id) as a
+    </select>
+
+    <select id="countPreferential" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.math.BigDecimal">
+        select sum(a.preferential_amount) from (
+        select `order`.order_id, `order`.preferential_amount from `order`
+        left join order_commodity on `order`.order_id = order_commodity.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or `order`.order_paper_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_step != null">
+            and find_in_set(`order`.order_step, #{order_step})
+        </if>
+        <if test="order_status != null">
+            and `order`.order_status = #{order_status}
+        </if>
+        <if test="orderStatuses != null">
+            and find_in_set(`order`.order_status,#{orderStatuses})
+        </if>
+        <if test="orderIds != null">
+            and `order`.order_id in
+            <foreach item="item" index="index" collection="orderIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.delivery_date and `order`.delivery_date &lt; #{endDate})
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="positionIds != null">
+            and find_in_set(`order`.position_id, #{positionIds})
+        </if>
+        <if test="positionIds != null and record_employee_code != null">
+            and (find_in_set(`order`.position_id, #{positionIds})
+            or `order`.record_employee_code = #{record_employee_code}
+            or `order`.employee_code = #{record_employee_code}
+            )
+        </if>
+        <if test="record_employee_code != null">
+            and `order`.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="permitEmployeeCodes != null">
+            and (
+            `order`.record_employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            or
+            `order`.employee_code in
+            <foreach item="item" index="index" collection="permitEmployeeCodes" open="(" separator="," close=")">
+                #{item}
+            </foreach>)
+        </if>
+        <if test="customer_phone_number != null">
+            and `order`.customer_phone_number = #{customer_phone_number}
+        </if>
+        <if test="total_price != null">
+            and `order`.total_price &gt;= #{total_price}
+        </if>
+        group by `order`.order_id) as a
+    </select>
+
+    <resultMap id="orderCommodityResult" type="com.xinshan.model.extend.order.OrderCommodityExtend"
+               extends="com.xinshan.dao.OrderCommodityMapper.BaseResultMap">
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="purchaseCommodity" javaType="com.xinshan.model.PurchaseCommodity"
+                     resultMap="com.xinshan.dao.PurchaseCommodityMapper.BaseResultMap"/>
+        <association property="orderCommodityValueAddedCard" javaType="com.xinshan.model.OrderCommodityValueAddedCard"
+                     resultMap="com.xinshan.dao.OrderCommodityValueAddedCardMapper.BaseResultMap"/>
+        <association property="position" javaType="com.xinshan.model.Position"
+                     resultMap="com.xinshan.dao.PositionMapper.BaseResultMap"/>
+        <association property="inventoryOutCommodity" javaType="com.xinshan.model.InventoryOutCommodity"
+                     resultMap="com.xinshan.dao.InventoryOutCommodityMapper.BaseResultMap"/>
+        <association property="orderCommoditySupplier" javaType="com.xinshan.model.OrderCommoditySupplier"
+                     resultMap="com.xinshan.dao.OrderCommoditySupplierMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="orderCommodityExtends" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultMap="orderCommodityResult">
+        select order_commodity.*,
+        `order`.*,
+        supplier.*,
+        commodity.*,
+        purchase_commodity.*,
+        order_commodity_value_added_card.*,
+        `position`.position_name,
+        inventory_out_commodity.inventory_out_commodity_status,
+        order_commodity_supplier.*
+        from order_commodity
+        left join `order` on order_commodity.order_id = `order`.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join order_commodity_value_added_card on order_commodity_value_added_card.order_commodity_id = order_commodity.order_commodity_id
+        left join `position` on `order`.position_id = `position`.position_id
+        left join inventory_out_commodity on inventory_out_commodity.order_commodity_id = order_commodity.order_commodity_id
+        left join order_commodity_supplier on order_commodity.order_commodity_id = order_commodity_supplier.order_commodity_id
+        where 1=1
+        <include refid="orderCommodityQuery"/>
+        order by `order`.order_code desc, order_commodity.order_commodity_id asc, commodity.commodity_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="orderCommodityQuery">
+        <if test="order_status != null">
+            and `order`.order_status = #{order_status}
+        </if>
+        <if test="order_commodity_id != null">
+            and order_commodity.order_commodity_id = #{order_commodity_id}
+        </if>
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="employee_code != null">
+            and (`order`.record_employee_code = #{employee_code} or `order`.employee_code = #{employee_code})
+        </if>
+        <if test="order_commodity_status != null">
+            and find_in_set(order_commodity.order_commodity_status, #{order_commodity_status})
+        </if>
+        <if test="order_commodity_return_status != null">
+            and find_in_set(order_commodity.order_commodity_return_status, #{order_commodity_return_status})
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.delivery_date and `order`.delivery_date &lt; #{endDate})
+        </if>
+        <if test="inventory_out_commodity_status != null">
+            and find_in_set(inventory_out_commodity.inventory_out_commodity_status #{inventory_out_commodity_status})
+        </if>
+        <if test="supplierIds != null">
+            and supplier.supplier_id in
+            <foreach collection="supplierIds" item="item" index="index" separator="," open="(" close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="commodity_num != null">
+            and order_commodity.commodity_num &gt;= #{commodity_num}
+        </if>
+        <choose>
+            <when test="order_commodity_supplier_status == 1">
+                and order_commodity_supplier.order_commodity_supplier_status is not null
+            </when>
+            <when test="order_commodity_supplier_status == 0">
+                and order_commodity_supplier.order_commodity_supplier_status is null
+            </when>
+        </choose>
+        <if test="orderStatuses != null">
+            and find_in_set(`order`.order_status,#{orderStatuses})
+        </if>
+    </sql>
+    <select id="countOrderCommodity" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT order_commodity.order_commodity_id) from order_commodity
+        left join `order` on order_commodity.order_id = `order`.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join order_commodity_supplier on order_commodity.order_commodity_id = order_commodity_supplier.order_commodity_id
+        where 1=1
+        <include refid="orderCommodityQuery"/>
+    </select>
+
+    <select id="orderCommodityStatics" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.util.Map">
+        select
+        sum(order_commodity.commodity_num) as commodity_num,
+        sum(order_commodity.commodity_total_price) as commodity_total_price,
+        sum(purchase_commodity.purchase_total_price) as purchase_total_price
+        from order_commodity
+        left join `order` on order_commodity.order_id = `order`.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="employee_code != null">
+            and (`order`.record_employee_code = #{employee_code} or `order`.employee_code = #{employee_code})
+        </if>
+        <if test="order_commodity_status != null">
+            and find_in_set(order_commodity.order_commodity_status, #{order_commodity_status})
+        </if>
+    </select>
+    <select id="simpleOrderCommodities" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.util.Map">
+        select order_commodity.order_commodity_id as order_commodity_id,
+        order_commodity.commodity_id as commodity_id,
+        purchase_commodity.purchase_commodity_id as purchase_commodity_id
+        from order_commodity
+        left join `order` on order_commodity.order_id = `order`.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="employee_code != null">
+            and (`order`.record_employee_code = #{employee_code} or `order`.employee_code = #{employee_code})
+        </if>
+        <if test="order_commodity_status != null">
+            and find_in_set(order_commodity.order_commodity_status, #{order_commodity_status})
+        </if>
+    </select>
+
+    <select id="purchaseTotalPrice" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.math.BigDecimal">
+        select sum(a.pruchaseTotalPrice) from (
+        select order_commodity.order_commodity_id as order_commodity_id,
+        purchase_commodity.purchase_total_price,
+        commodity.sell_price,order_commodity.commodity_num,
+        CASE WHEN purchase_commodity.purchase_commodity_id is not null and purchase_commodity.purchase_total_price > 0 then purchase_commodity.purchase_total_price
+        ELSE commodity.purchase_price*order_commodity.commodity_num END as pruchaseTotalPrice
+        from order_commodity
+        left join `order` on order_commodity.order_id = `order`.order_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        <if test="employee_code != null">
+            and `order`.employee_code = #{employee_code}
+        </if>
+        <if test="order_id != null">
+            and `order`.order_id = #{order_id}
+        </if>
+        <if test="orderStartDate != null and orderEndDate != null">
+            and (#{orderStartDate} &lt;= `order`.order_date and `order`.order_date &lt; #{orderEndDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="employee_code != null">
+            and (`order`.record_employee_code = #{employee_code} or `order`.employee_code = #{employee_code})
+        </if>
+        <if test="order_commodity_status != null">
+            and find_in_set(order_commodity.order_commodity_status, #{order_commodity_status})
+        </if>) as a
+    </select>
+
+    <select id="getOrderCommodityCard" resultType="com.xinshan.model.OrderCommodityValueAddedCard">
+        select * from order_commodity_value_added_card where order_commodity_id = #{order_commodity_id}
+    </select>
+
+    <update id="updateOrderPayIds" parameterType="com.xinshan.model.Order">
+        update `order` set order_pay_ids = #{order_pay_ids} where order_id = #{order_id}
+    </update>
+
+    <select id="cashBackCommodities" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultMap="orderCommodityResult">
+        select order_commodity.*,
+        commodity.commodity_name,commodity.commodity_code,commodity.supplier_id,
+        supplier.supplier_name
+        from order_commodity
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="order_id != null">
+            and order_commodity.order_id = #{order_id}
+        </if>
+        <if test="commodityIds != null and supplierIds != null">
+            and (order_commodity.commodity_id in
+            <foreach item="item" index="index" collection="commodityIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            or
+            supplier.supplier_id in
+            <foreach item="item" index="index" collection="supplierIds" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            )
+        </if>
+        <if test="commodityIds != null and supplierIds == null">
+            and order_commodity.commodity_id in
+            <foreach item="item" index="index" collection="commodityIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="commodityIds == null and supplierIds != null">
+            and supplier.supplier_id in
+            <foreach item="item" index="index" collection="supplierIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="orderCommodityIdList != null">
+            and order_commodity.order_commodity_id in
+            <foreach item="item" index="index" collection="orderCommodityIdList"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by order_commodity.order_commodity_id asc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="orderCarryFees" parameterType="java.lang.Integer" resultType="com.xinshan.model.OrderCarryFee">
+        select * from order_carry_fee where order_id = #{order_id}
+    </select>
+
+    <select id="daogouList" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.util.Map">
+        select
+        distinct `order`.employee_code as employee_code,
+        `order`.employee_name as employee_name
+        from `order`
+        where 1=1
+        <if test="param != null">
+            and `order`.employee_code like "%"#{param}"%"
+        </if>
+    </select>
+
+    <insert id="createOrderCommoditySupplier" parameterType="com.xinshan.model.OrderCommoditySupplier" useGeneratedKeys="true" keyProperty="order_commodity_supplier_id">
+        insert into order_commodity_supplier (order_commodity_supplier_id, order_commodity_id,
+          order_commodity_supplier_status, supplier_confirm_employee_code,
+          supplier_confirm_employee_name, supplier_confirm_date,
+          supplier_arrival_employee_code, supplier_arrival_employee_name,
+          supplier_arrival_date)
+        values (#{order_commodity_supplier_id,jdbcType=INTEGER}, #{order_commodity_id,jdbcType=INTEGER},
+          #{order_commodity_supplier_status,jdbcType=INTEGER}, #{supplier_confirm_employee_code,jdbcType=VARCHAR},
+          #{supplier_confirm_employee_name,jdbcType=VARCHAR}, #{supplier_confirm_date,jdbcType=TIMESTAMP},
+          #{supplier_arrival_employee_code,jdbcType=VARCHAR}, #{supplier_arrival_employee_name,jdbcType=VARCHAR},
+          #{supplier_arrival_date,jdbcType=TIMESTAMP})
+    </insert>
+    <delete id="deleteOrderCommoditySupplier" parameterType="java.lang.Integer">
+        delete from order_commodity_supplier where order_commodity_id = #{order_commodity_id}
+    </delete>
+
+    <select id="orderExport" parameterType="com.xinshan.pojo.order.OrderSearchOption" resultType="java.util.HashMap">
+        select
+        `order`.order_code as order_code,
+        `order`.order_paper_code as order_paper_code,
+        `order`.order_date as order_date,
+        `order`.customer_name as customer_name,
+        `order`.customer_phone_number as customer_phone_number,
+        `order`.delivery_address as delivery_address,
+        `order`.delivery_date as delivery_date,
+        `position`.position_name as position_name,
+        `order`.employee_name as employee_name,
+        `order`.order_total_price as order_total_price,
+        `order`.preferential_amount as preferential_amount,
+        `order`.total_price as total_price,
+        `order`.record_employee_name as record_employee_name,
+        `order`.order_step as order_step,
+        `order`.order_pay_ids as order_pay_ids,
+        (select sum(order_carry_fee) from order_carry_fee where order_carry_fee.order_id = `order`.order_id) as order_carry_fee
+        from `order`
+        left join position on position.position_id = `order`.position_id
+        where
+        `order`.order_id in
+        <foreach item="item" index="index" collection="list"  open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        order by `order`.order_status desc, `order`.order_code desc, `order`.record_date desc
+    </select>
+
+</mapper>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.commodity.CommodityPrepareExtendMapper" >
+
+    <insert id="createCommodityPrepare" parameterType="com.xinshan.model.CommodityPrepare" useGeneratedKeys="true" keyProperty="commodity_prepare_id">
+        insert into commodity_prepare (commodity_prepare_id, supplier_commodity_code,
+          commodity_code, bar_code, commodity_name,
+          supplier_id, purchase_price, sell_price,
+          commodity_freight, category_id, commodity_color_id,
+          commodity_unit_id, commodity_size, record_employee_code,
+          record_employee_name, commodity_brand,
+          supplier_series_id, record_date, sichuan,
+          qrcode, commodity_sample, guangdong,
+          edit_employee_code, edit_employee_name,
+          edit_date, prepare_status, check_employee_code,
+          check_employee_name, bar_code_img,
+          commodity_img, commodity_remark
+          )
+        values (#{commodity_prepare_id,jdbcType=INTEGER}, #{supplier_commodity_code,jdbcType=VARCHAR},
+          #{commodity_code,jdbcType=VARCHAR}, #{bar_code,jdbcType=VARCHAR}, #{commodity_name,jdbcType=VARCHAR},
+          #{supplier_id,jdbcType=INTEGER}, #{purchase_price,jdbcType=DECIMAL}, #{sell_price,jdbcType=DECIMAL},
+          #{commodity_freight,jdbcType=DECIMAL}, #{category_id,jdbcType=INTEGER}, #{commodity_color_id,jdbcType=INTEGER},
+          #{commodity_unit_id,jdbcType=INTEGER}, #{commodity_size,jdbcType=VARCHAR}, #{record_employee_code,jdbcType=VARCHAR},
+          #{record_employee_name,jdbcType=VARCHAR}, #{commodity_brand,jdbcType=VARCHAR},
+          #{supplier_series_id,jdbcType=INTEGER}, #{record_date,jdbcType=TIMESTAMP}, #{sichuan,jdbcType=INTEGER},
+          #{qrcode,jdbcType=VARCHAR}, #{commodity_sample,jdbcType=INTEGER}, #{guangdong,jdbcType=INTEGER},
+          #{edit_employee_code,jdbcType=VARCHAR}, #{edit_employee_name,jdbcType=VARCHAR},
+          #{edit_date,jdbcType=TIMESTAMP}, #{prepare_status,jdbcType=INTEGER}, #{check_employee_code,jdbcType=VARCHAR},
+          #{check_employee_name,jdbcType=VARCHAR}, #{bar_code_img,jdbcType=LONGVARCHAR},
+          #{commodity_img,jdbcType=LONGVARCHAR}, #{commodity_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <resultMap id="commodityPrepareResultMap" type="com.xinshan.model.extend.commodity.CommodityPrepareExtend"
+               extends="com.xinshan.dao.CommodityPrepareMapper.BaseResultMap">
+        <association property="category" javaType="com.xinshan.model.Category">
+            <result column="category_name" property="category_name"/>
+        </association>
+        <association property="commodityColor" javaType="com.xinshan.model.CommodityColor">
+            <result column="color_name" property="color_name"/>
+        </association>
+        <association property="commodityUnit" javaType="com.xinshan.model.CommodityUnit">
+            <result column="unit_name" property="unit_name"/>
+        </association>
+        <association property="supplier" javaType="com.xinshan.model.Supplier">
+            <result column="supplier_name" property="supplier_name"/>
+            <result column="contacts" property="contacts"/>
+        </association>
+        <association property="supplierSeries" javaType="com.xinshan.model.SupplierSeries">
+            <result column="series_name" property="series_name"/>
+        </association>
+    </resultMap>
+    <select id="commodityPrepareList" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultMap="commodityPrepareResultMap">
+        select * from commodity_prepare
+        left join commodity_unit on commodity_prepare.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity_prepare.commodity_color_id = commodity_color.commodity_color_id
+        left join category on commodity_prepare.category_id = category.category_id
+        left join supplier on supplier.supplier_id = commodity_prepare.supplier_id
+        where 1=1
+        <include refid="commodityPrepareQuery"/>
+        order by commodity_prepare.commodity_prepare_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="commodityPrepareQuery">
+        <if test="commodity_code != null">
+            and commodity_prepare.commodity_code = #{commodity_code}
+        </if>
+        <if test="commodity_prepare_id != null">
+            and commodity_prepare.commodity_prepare_id = #{commodity_prepare_id}
+        </if>
+        <if test="prepareStatuses != null">
+            and find_in_set(commodity_prepare.prepare_status, #{prepareStatuses})
+        </if>
+        <if test="record_employee_code != null">
+            and commodity_prepare.record_employee_code = #{record_employee_code}
+        </if>
+        <if test="supplierIdList != null">
+            and commodity_prepare.supplier_id in
+            <foreach item="supplier_id" index="index" collection="supplierIdList" open="(" separator="," close=")">
+                #{supplier_id}
+            </foreach>
+        </if>
+        <if test="commodityPrepareIds != null">
+            and commodity_prepare.commodity_prepare_id in
+            <foreach item="supplier_id" index="index" collection="commodityPrepareIds" open="(" separator="," close=")">
+                #{supplier_id}
+            </foreach>
+        </if>
+    </sql>
+    <select id="countCommodityPrepare" parameterType="com.xinshan.pojo.commodity.CommoditySearchOption" resultType="java.lang.Integer">
+        select count(distinct commodity_prepare.commodity_prepare_id) from commodity_prepare
+        left join commodity_unit on commodity_prepare.commodity_unit_id = commodity_unit.commodity_unit_id
+        left join commodity_color on commodity_prepare.commodity_color_id = commodity_color.commodity_color_id
+        left join category on commodity_prepare.category_id = category.category_id
+        left join supplier on supplier.supplier_id = commodity_prepare.supplier_id
+        where 1=1
+        <include refid="commodityPrepareQuery"/>
+    </select>
+
+</mapper>

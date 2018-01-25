@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.orderFee.OrderFeeExtendMapper">
+    <insert id="createOrderFee" parameterType="com.xinshan.model.OrderFee" useGeneratedKeys="true" keyProperty="order_fee_id">
+        insert into order_fee (order_fee_id, order_fee_type_id,
+          record_date, record_employee_code, record_employee_name,
+          order_fee_remark, order_id, inventory_history_id,
+          supplier_id, worker_id, order_fee_supplier_status,
+          order_fee_worker_status, supplier_fee,
+          fhc_fee, customer_fee, fee,
+          after_sales_id, order_fee_check_status,
+          order_fee_check_employee_code, order_fee_check_employee_name,
+          order_fee_check_date, order_fee_source,
+          order_fee_enable, position_id, position_name
+          )
+        values (#{order_fee_id,jdbcType=INTEGER}, #{order_fee_type_id,jdbcType=INTEGER},
+          #{record_date,jdbcType=TIMESTAMP}, #{record_employee_code,jdbcType=VARCHAR}, #{record_employee_name,jdbcType=VARCHAR},
+          #{order_fee_remark,jdbcType=VARCHAR}, #{order_id,jdbcType=INTEGER}, #{inventory_history_id,jdbcType=INTEGER},
+          #{supplier_id,jdbcType=INTEGER}, #{worker_id,jdbcType=INTEGER}, #{order_fee_supplier_status,jdbcType=INTEGER},
+          #{order_fee_worker_status,jdbcType=INTEGER}, #{supplier_fee,jdbcType=DECIMAL},
+          #{fhc_fee,jdbcType=DECIMAL}, #{customer_fee,jdbcType=DECIMAL}, #{fee,jdbcType=DECIMAL},
+          #{after_sales_id,jdbcType=INTEGER}, #{order_fee_check_status,jdbcType=INTEGER},
+          #{order_fee_check_employee_code,jdbcType=VARCHAR}, #{order_fee_check_employee_name,jdbcType=VARCHAR},
+          #{order_fee_check_date,jdbcType=TIMESTAMP}, #{order_fee_source,jdbcType=INTEGER},
+          #{order_fee_enable,jdbcType=INTEGER}, #{position_id,jdbcType=INTEGER}, #{position_name,jdbcType=VARCHAR}
+          )
+    </insert>
+
+    <insert id="createOrderFeeType" parameterType="com.xinshan.model.OrderFee" useGeneratedKeys="true" keyProperty="order_fee_type_id">
+        insert into order_fee_type (order_fee_type_id, order_fee_type_name,
+          order_fee_type_desc)
+        values (#{order_fee_type_id,jdbcType=INTEGER}, #{order_fee_type_name,jdbcType=VARCHAR},
+          #{order_fee_type_desc,jdbcType=VARCHAR})
+    </insert>
+    <resultMap id="orderFeeResultMap" type="com.xinshan.model.extend.orderFee.OrderFeeExtend"
+               extends="com.xinshan.dao.OrderFeeMapper.BaseResultMap">
+        <!--<result property="sampleFixRemark" column="sampleFixRemark" jdbcType="VARCHAR"/>
+        <result property="sampleFixCode" column="sampleFixCode" jdbcType="VARCHAR"/>-->
+        <association property="orderFeeType" javaType="com.xinshan.model.OrderFeeType" resultMap="com.xinshan.dao.OrderFeeTypeMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier" resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="worker" javaType="com.xinshan.model.Worker" resultMap="com.xinshan.dao.WorkerMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order" resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+    </resultMap>
+
+    <select id="orderFees" parameterType="com.xinshan.pojo.afterSales.AfterSalesSearchOption" resultMap="orderFeeResultMap">
+        select *
+        /*,(select fix_desc from commodity_sample_fix where find_in_set(order_fee.order_fee_id, commodity_sample_fix.order_fee_ids)) as sampleFixRemark
+        ,(select sample_fix_code from commodity_sample_fix where find_in_set(order_fee.order_fee_id, commodity_sample_fix.order_fee_ids)) as sampleFixCode*/
+        from order_fee
+        left join order_fee_type on order_fee.order_fee_type_id = order_fee_type.order_fee_type_id
+        left join supplier on order_fee.supplier_id = supplier.supplier_id
+        left join worker on order_fee.worker_id = worker.worker_id
+        left join `order` on `order`.order_id = order_fee.order_id
+        where 1=1
+        <include refid="orderFeeQuery"/>
+        order by order_fee.record_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <sql id="orderFeeQuery">
+        <if test="param != null">
+            and (`order`.order_code like concat('%', #{param} , '%')
+            or worker.worker_name like concat('%', #{param} , '%')
+            )
+        </if>
+        <if test="after_sales_id != null">
+            and order_fee.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="order_fee_id != null">
+            and order_fee.order_fee_id = #{order_fee_id}
+        </if>
+        <if test="order_fee_type_id != null">
+            and order_fee.order_fee_type_id = #{order_fee_type_id}
+        </if>
+        <if test="inventory_history_id != null">
+            and order_fee.inventory_history_id = #{inventory_history_id}
+        </if>
+        <if test="worker_id != null">
+            and order_fee.worker_id = #{worker_id}
+        </if>
+        <if test="supplier_id != null">
+            AND order_fee.supplier_id = #{supplier_id}
+        </if>
+        <if test="order_id != null">
+            AND order_fee.order_id = #{order_id}
+        </if>
+        <if test="order_fee_source != null">
+            and find_in_set(order_fee.order_fee_source, #{order_fee_source})
+        </if>
+        <if test="order_fee_enable != null">
+            and order_fee.order_fee_enable = #{order_fee_enable}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (order_fee.record_date &gt;= #{startDate} and order_fee.record_date &lt; #{endDate})
+        </if>
+        <if test="fee != null">
+            <choose>
+                <when test="fee == 1"><!-- 有费用 -->
+                    and (order_fee.supplier_fee &gt; 0 or order_fee.fhc_fee &gt; 0 or order_fee.customer_fee &gt; 0)
+                </when>
+                <when test="fee == 0"><!-- 没有费用 -->
+                    and ((order_fee.supplier_fee is null or order_fee.supplier_fee = 0) and
+                    (order_fee.fhc_fee is null or order_fee.fhc_fee = 0) and
+                    (order_fee.customer_fee is null or order_fee.customer_fee = 0))
+                </when>
+            </choose>
+        </if>
+    </sql>
+    <select id="countOrderFee" parameterType="com.xinshan.pojo.afterSales.AfterSalesSearchOption" resultType="java.lang.Integer">
+        select count(*) from order_fee
+        left join order_fee_type on order_fee.order_fee_type_id = order_fee_type.order_fee_type_id
+        left join supplier on order_fee.supplier_id = supplier.supplier_id
+        left join worker on order_fee.worker_id = worker.worker_id
+        left join `order` on `order`.order_id = order_fee.order_id
+        where 1=1
+        <include refid="orderFeeQuery"/>
+    </select>
+
+    <select id="orderFees1" parameterType="com.xinshan.pojo.orderFee.OrderFeeSearchOption" resultMap="orderFeeResultMap">
+        select
+        order_fee.*
+        ,order_fee_type.order_fee_type_name
+        ,supplier.supplier_name,supplier.contacts
+        ,worker.worker_name,worker.worker_phone
+        ,`order`.order_code,`order`.customer_name
+        from order_fee
+        left join order_fee_type on order_fee.order_fee_type_id = order_fee_type.order_fee_type_id
+        left join supplier on order_fee.supplier_id = supplier.supplier_id
+        left join worker on order_fee.worker_id = worker.worker_id
+        left join `order` on `order`.order_id = order_fee.order_id
+        where 1=1
+        <if test="order_fee_id != null">
+            and order_fee.order_fee_id = #{order_fee_id}
+        </if>
+        <if test="after_sales_id != null">
+            and order_fee.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="inventory_history_id != null">
+            and order_fee.inventory_history_id = #{inventory_history_id}
+        </if>
+        <if test="supplier_id != null">
+            and order_fee.supplier_id = #{supplier_id}
+        </if>
+        <if test="orderFeeIds != null">
+            and order_fee.order_fee_id IN
+            <foreach item="item" index="index" collection="orderFeeIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by order_fee.record_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="fixDesc" resultType="java.util.HashMap">
+        select fix_desc, sample_fix_code from commodity_sample_fix
+        where find_in_set(#{order_fee_id}, order_fee_ids)
+    </select>
+</mapper>

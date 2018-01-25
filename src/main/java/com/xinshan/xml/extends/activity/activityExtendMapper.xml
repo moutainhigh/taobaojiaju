@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.xinshan.dao.extend.activity.ActivityExtendMapper" >
+    <insert id="createActivity" parameterType="com.xinshan.model.Activity" useGeneratedKeys="true" keyProperty="activity_id">
+        insert into activity (activity_id, activity_name, activity_start_date,
+          activity_end_date, activity_create_date,
+          activity_create_employee_code, activity_create_employee_name,
+          activity_status, activity_type, activity_desc
+          )
+        values (#{activity_id,jdbcType=INTEGER}, #{activity_name,jdbcType=VARCHAR}, #{activity_start_date,jdbcType=TIMESTAMP},
+          #{activity_end_date,jdbcType=TIMESTAMP}, #{activity_create_date,jdbcType=TIMESTAMP},
+          #{activity_create_employee_code,jdbcType=VARCHAR}, #{activity_create_employee_name,jdbcType=VARCHAR},
+          #{activity_status,jdbcType=INTEGER}, #{activity_type,jdbcType=INTEGER}, #{activity_desc,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <insert id="createActivityDetail" parameterType="com.xinshan.model.ActivityDetail" useGeneratedKeys="true" keyProperty="activity_detail_id">
+        insert into activity_detail (activity_detail_id, activity_id,
+          `all`, activity_type, activity_discount,
+          supplier_ids, supplier_serieses,
+          commodity_ids)
+        values (#{activity_detail_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{all,jdbcType=INTEGER}, #{activity_type,jdbcType=INTEGER}, #{activity_discount,jdbcType=DECIMAL},
+          #{supplier_ids,jdbcType=LONGVARCHAR}, #{supplier_serieses,jdbcType=LONGVARCHAR},
+          #{commodity_ids,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createActivityCommodity" parameterType="com.xinshan.model.ActivityCommodity" useGeneratedKeys="true" keyProperty="activity_commodity_id">
+        insert into activity_commodity (activity_commodity_id, activity_id,
+          commodity_id, sample, activity_sell_price,
+          activity_purchase_price, activity_commodity_status,
+          activity_commodity_create_date, sell_price,
+          purchase_price, activity_commodity_remark
+          )
+        values (#{activity_commodity_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER}, #{sample,jdbcType=INTEGER}, #{activity_sell_price,jdbcType=DECIMAL},
+          #{activity_purchase_price,jdbcType=DECIMAL}, #{activity_commodity_status,jdbcType=INTEGER},
+          #{activity_commodity_create_date,jdbcType=TIMESTAMP}, #{sell_price,jdbcType=DECIMAL},
+          #{purchase_price,jdbcType=DECIMAL}, #{activity_commodity_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <insert id="createActivityValueAdded" parameterType="com.xinshan.model.ActivityValueAdded" keyProperty="activity_value_add_id" useGeneratedKeys="true">
+        insert into activity_value_added (activity_value_added_id, activity_id,
+          value_added_card_num, value_added_card_amount
+          )
+        values (#{activity_value_added_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{value_added_card_num,jdbcType=INTEGER}, #{value_added_card_amount,jdbcType=DECIMAL}
+          )
+    </insert>
+    <insert id="createActivityGoldEgg" parameterType="com.xinshan.model.ActivityGoldEgg" keyProperty="activity_gold_egg_id" useGeneratedKeys="true">
+        insert into activity_gold_egg (activity_gold_egg_id, activity_id,
+          gold_egg_amount, gold_egg_settlement_amount,
+          gold_egg_type, supplier_ids, gold_egg_remark
+          )
+        values (#{activity_gold_egg_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{gold_egg_amount,jdbcType=DECIMAL}, #{gold_egg_settlement_amount,jdbcType=DECIMAL},
+          #{gold_egg_type,jdbcType=INTEGER}, #{supplier_ids,jdbcType=LONGVARCHAR}, #{gold_egg_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <insert id="createCashBack" parameterType="com.xinshan.model.ActivityCashBack" keyProperty="activity_cash_back_id" useGeneratedKeys="true">
+        insert into activity_cash_back (activity_cash_back_id, activity_id,
+          cash_back_all, cash_back_rate, cash_back_type,
+          activity_cash_back_remark, cash_back_supplier_ids,
+          cash_back_supplier_serieses, cash_back_commodity_ids
+          )
+        values (#{activity_cash_back_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{cash_back_all,jdbcType=INTEGER}, #{cash_back_rate,jdbcType=DECIMAL}, #{cash_back_type,jdbcType=INTEGER},
+          #{activity_cash_back_remark,jdbcType=LONGVARCHAR}, #{cash_back_supplier_ids,jdbcType=LONGVARCHAR},
+          #{cash_back_supplier_serieses,jdbcType=LONGVARCHAR}, #{cash_back_commodity_ids,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <insert id="createActivityBrand" parameterType="com.xinshan.model.ActivityBrand" keyProperty="activity_brand_id" useGeneratedKeys="true">
+        insert into activity_brand (activity_brand_id, activity_id, activity_brand_amount,
+          brand_gift_num, activity_brand_names,
+          activity_brand_remark)
+        values (#{activity_brand_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER}, #{activity_brand_amount,jdbcType=DECIMAL},
+          #{brand_gift_num,jdbcType=INTEGER}, #{activity_brand_names,jdbcType=LONGVARCHAR},
+          #{activity_brand_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="createActivitySpecial" parameterType="com.xinshan.model.ActivitySpecialRight" keyProperty="activity_special_right_id" useGeneratedKeys="true">
+        insert into activity_special_right (activity_special_right_id, activity_id,
+          order_amount, special_right_commodity_ids,
+          special_right_remark)
+        values (#{activity_special_right_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{order_amount,jdbcType=DECIMAL}, #{special_right_commodity_ids,jdbcType=LONGVARCHAR},
+          #{special_right_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createActivitySpecialCommodity" parameterType="com.xinshan.model.ActivitySpecialRightCommodity" useGeneratedKeys="true" keyProperty="activity_special_right_commodity_id">
+        insert into activity_special_right_commodity (activity_special_right_commodity_id, activity_id,
+          commodity_id, special_right_price, special_right_num,
+          special_right_sell_num, special_right_remaining_num,
+          special_right_commodity_status, special_right_commodity_remark
+          )
+        values (#{activity_special_right_commodity_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER}, #{special_right_price,jdbcType=DECIMAL}, #{special_right_num,jdbcType=INTEGER},
+          #{special_right_sell_num,jdbcType=INTEGER}, #{special_right_remaining_num,jdbcType=INTEGER},
+          #{special_right_commodity_status,jdbcType=INTEGER}, #{special_right_commodity_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+    <insert id="createActivitySellLimit" parameterType="com.xinshan.model.ActivitySellLimit" useGeneratedKeys="true" keyProperty="activity_sell_limit_id">
+        insert into activity_sell_limit (activity_sell_limit_id, activity_id,
+          commodity_id, limit_num, activity_commodity_remark
+          )
+        values (#{activity_sell_limit_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER}, #{limit_num,jdbcType=INTEGER}, #{activity_commodity_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <select id="activityIds" parameterType="com.xinshan.pojo.activity.ActivitySearchOption" resultType="java.lang.Integer">
+        select DISTINCT activity.activity_id from activity
+        left join activity_detail on activity.activity_id = activity_detail.activity_id
+        left join activity_commodity on activity.activity_id = activity_commodity.activity_id
+        where 1=1
+        <if test="activity_type != null">
+            and activity.activity_type = #{activity_type}
+        </if>
+        <if test="activity_id != null">
+            and activity.activity_id = #{activity_id}
+        </if>
+        <if test="param != null">
+            and activity.activity_name like "%"#{param}"%"
+        </if>
+        <if test="startDate != null and endDate != null">
+            and #{startDate} &lt;= activity.activity_end_date and activity.activity_end_date &lt; #{endDate}
+        </if>
+        <if test="activity_status != null">
+            and activity.activity_status = #{activity_status}
+        </if>
+        <if test="currentDate != null">
+            and #{currentDate} &gt;= activity.activity_start_date and activity.activity_end_date &gt;= #{currentDate}
+        </if>
+        order by activity.activity_status desc, activity.activity_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <resultMap id="activityResultMap" type="com.xinshan.model.extend.activity.ActivityExtend"
+               extends="com.xinshan.dao.ActivityMapper.BaseResultMap">
+        <association property="activityDetail" javaType="com.xinshan.model.ActivityDetail"
+                     resultMap="com.xinshan.dao.ActivityDetailMapper.BaseResultMap"/>
+        <collection property="activityCommodities" ofType="com.xinshan.model.ActivityCommodity"
+                    resultMap="com.xinshan.dao.ActivityCommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="activityDetail" parameterType="java.lang.Integer" resultMap="activityResultMap">
+        select * from activity
+        where activity.activity_id = #{activity_id}
+    </select>
+
+    <select id="getActivityDetail" parameterType="java.lang.Integer" resultType="com.xinshan.model.ActivityDetail">
+        select * from activity_detail where activity_id = #{activity_id}
+    </select>
+
+    <resultMap id="activityCommodityListResultMap" type="com.xinshan.model.extend.activity.ActivityCommodityExtend"
+               extends="com.xinshan.dao.ActivityCommodityMapper.BaseResultMap">
+        <association property="commodity" javaType="com.xinshan.model.Commodity">
+            <result column="commodity_name" property="commodity_name"/>
+            <result column="commodity_code" property="commodity_code"/>
+        </association>
+        <association property="supplier" javaType="com.xinshan.model.Supplier">
+            <result column="supplier_name" property="supplier_name"/>
+            <result column="contacts" property="contacts"/>
+        </association>
+    </resultMap>
+    <select id="activityCommodityList" parameterType="com.xinshan.pojo.activity.ActivitySearchOption" resultMap="activityCommodityListResultMap">
+        select activity_commodity.*,supplier.supplier_name,supplier.contacts,commodity.commodity_name,commodity.commodity_code from activity_commodity
+        left join commodity on activity_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where activity_commodity.activity_id = #{activity_id}
+        <if test="activity_commodity_status != null">
+            and activity_commodity.activity_commodity_status = #{activity_commodity_status}
+        </if>
+        order by commodity.commodity_id
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countActivityCommodityExtends" parameterType="com.xinshan.pojo.activity.ActivitySearchOption" resultType="java.lang.Integer">
+        select count(*) from activity_commodity
+        left join commodity on activity_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where activity_commodity.activity_id = #{activity_id}
+        <if test="activity_commodity_status != null">
+            and activity_commodity.activity_commodity_status = #{activity_commodity_status}
+        </if>
+    </select>
+    <select id="countActivity" parameterType="com.xinshan.pojo.activity.ActivitySearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT activity.activity_id) from activity
+        left join activity_detail on activity.activity_id = activity_detail.activity_id
+        left join activity_commodity on activity.activity_id = activity_commodity.activity_id
+        where 1=1
+        <if test="activity_type != null">
+            and activity.activity_type = #{activity_type}
+        </if>
+        <if test="activity_id != null">
+            and activity.activity_id = #{activity_id}
+        </if>
+        <if test="param != null">
+            and activity.activity_name like "%"#{param}"%"
+        </if>
+        <if test="startDate != null and endDate != null">
+            and #{startDate} &lt;= activity.activity_end_date and activity.activity_end_date &lt; #{endDate}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and #{startDate} &lt;= activity.activity_end_date and activity.activity_end_date &lt; #{endDate}
+        </if>
+        <if test="activity_status != null">
+            and activity.activity_status = #{activity_status}
+        </if>
+        <if test="currentDate != null">
+            and #{currentDate} &gt;= activity.activity_start_date and activity.activity_end_date &gt; #{currentDate}
+        </if>
+    </select>
+
+    <resultMap id="activityCommodityResultMap" type="com.xinshan.model.extend.activity.ActivityCommodityExtend"
+               extends="com.xinshan.dao.ActivityCommodityMapper.BaseResultMap">
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap">
+        </association>
+        <association property="activityDetail" javaType="com.xinshan.model.ActivityDetail"
+                     resultMap="com.xinshan.dao.ActivityDetailMapper.BaseResultMap">
+        </association>
+    </resultMap>
+    <select id="activityCommodities" parameterType="com.xinshan.pojo.activity.ActivitySearchOption" resultMap="activityCommodityResultMap">
+        select * from activity_commodity
+        left join activity on activity_commodity.activity_id = activity.activity_id
+        left join activity_detail on activity.activity_id = activity_detail.activity_id
+        WHERE 1=1
+        <if test="activity_commodity_id != null">
+            and activity_commodity.activity_commodity_id = #{activity_commodity_id}
+        </if>
+        order by activity_detail.all desc,activity_detail.activity_id desc
+    </select>
+
+    <update id="updateActivityDetail" parameterType="com.xinshan.model.ActivityDetail">
+        update activity_detail
+        set activity_id = #{activity_id,jdbcType=INTEGER},
+          `all` = #{all,jdbcType=INTEGER},
+          activity_type = #{activity_type,jdbcType=INTEGER},
+          activity_discount = #{activity_discount,jdbcType=DECIMAL},
+          supplier_ids = #{supplier_ids,jdbcType=LONGVARCHAR},
+          supplier_serieses = #{supplier_serieses,jdbcType=LONGVARCHAR},
+          commodity_ids = #{commodity_ids,jdbcType=LONGVARCHAR}
+        where activity_detail_id = #{activity_detail_id,jdbcType=INTEGER}
+    </update>
+
+    <select id="getValueAddedByActivityId" parameterType="java.lang.Integer" resultType="com.xinshan.model.ActivityValueAdded">
+        select * from activity_value_added where activity_id = #{activity_id};
+    </select>
+
+    <select id="getActivityCashBack" parameterType="java.lang.Integer" resultType="com.xinshan.model.ActivityCashBack">
+        select * from activity_cash_back where activity_id = #{activity_id};
+    </select>
+
+    <select id="getActivityGoldEgg" parameterType="java.lang.Integer" resultType="com.xinshan.model.ActivityGoldEgg">
+        select * from activity_gold_egg where activity_id = #{activity_id};
+    </select>
+    <select id="getActivityBrand" parameterType="java.lang.Integer" resultType="com.xinshan.model.ActivityBrand">
+        select * from activity_brand where activity_id = #{activity_id};
+    </select>
+    <select id="getActivitySpecial" parameterType="java.lang.Integer" resultType="com.xinshan.model.ActivitySpecialRight">
+        select * from activity_special_right where activity_id = #{activity_id};
+    </select>
+    <resultMap id="specialRightCommodityResultMap" type="com.xinshan.model.extend.activity.SpecialRightCommodityExtend"
+               extends="com.xinshan.dao.ActivitySpecialRightCommodityMapper.BaseResultMap">
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="specialRightCommodities" parameterType="com.xinshan.pojo.activity.ActivitySearchOption" resultMap="specialRightCommodityResultMap">
+        select activity_special_right_commodity.*
+        ,commodity.commodity_name,commodity.commodity_code
+        ,supplier.supplier_name,supplier.supplier_id
+        from activity_special_right_commodity
+        left join commodity on activity_special_right_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where activity_special_right_commodity.activity_id = #{activity_id}
+    </select>
+
+    <resultMap id="sellLimitResultMap" type="com.xinshan.model.extend.activity.SellLimitExtend">
+        <result property="activity_sell_limit_id" jdbcType="INTEGER" column="activity_sell_limit_id"/>
+        <result property="activity_id" jdbcType="INTEGER" column="activity_id"/>
+        <result property="commodity_id" jdbcType="INTEGER" column="commodity_id"/>
+        <result property="limit_num" jdbcType="INTEGER" column="limit_num"/>
+        <result property="order_num" jdbcType="INTEGER" column="order_num"/>
+        <result property="unconfirmed_order_num" jdbcType="INTEGER" column="unconfirmed_order_num"/>
+        <result property="return_num" jdbcType="INTEGER" column="return_num"/>
+        <result property="return_add_num" jdbcType="INTEGER" column="return_add_num"/>
+        <result property="activity_commodity_remark" jdbcType="VARCHAR" column="activity_commodity_remark"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity">
+            <result property="commodity_name" column="commodity_name" jdbcType="VARCHAR"/>
+            <result property="commodity_code" column="commodity_code" jdbcType="VARCHAR"/>
+            <result property="sell_price" column="sell_price" jdbcType="DECIMAL"/>
+        </association>
+        <association property="supplier" javaType="com.xinshan.model.Supplier">
+            <result property="supplier_name" column="supplier_name" jdbcType="VARCHAR"/>
+            <result property="supplier_id" column="supplier_id" jdbcType="INTEGER"/>
+        </association>
+    </resultMap>
+    <select id="sellLimits" resultMap="sellLimitResultMap">
+        select activity_sell_limit.*,commodity.commodity_code,commodity.commodity_name,commodity.sell_price,supplier.supplier_name,supplier.supplier_id,
+        (select sum(order_commodity.order_commodity_num) from order_commodity
+        left join `order` on `order`.order_id = order_commodity.order_id
+        where `order`.order_status=1 and order_commodity.order_commodity_type = 1
+        and `order`.order_date &gt;= activity.activity_start_date and `order`.order_date &lt;= activity.activity_end_date
+        and order_commodity.commodity_id = activity_sell_limit.commodity_id and `order`.trans_purchase = 1) as order_num,
+        (select sum(order_commodity.order_commodity_num) from order_commodity
+        left join `order` on `order`.order_id = order_commodity.order_id
+        where `order`.order_status=1 and order_commodity.order_commodity_type = 1
+        and `order`.order_date &gt;= activity.activity_start_date and `order`.order_date &lt;= activity.activity_end_date
+        and order_commodity.commodity_id = activity_sell_limit.commodity_id and `order`.trans_purchase = 0) as unconfirmed_order_num,
+        (select sum(order_return_commodity.order_return_commodity_num) from order_return_commodity
+        left join order_return on order_return_commodity.order_return_id = order_return.order_return_id
+        where order_return.order_return_check_status = 1 and order_return_commodity.order_return_commodity_type = 1
+        and order_return.order_return_date &gt;= activity.activity_start_date and order_return.order_return_date &lt;= activity.activity_end_date
+        and order_return_commodity.commodity_id = activity_sell_limit.commodity_id) as return_num,
+        (select sum(order_return_commodity.order_return_commodity_num) from order_return_commodity
+        left join order_return on order_return_commodity.order_return_id = order_return.order_return_id
+        where order_return.order_return_check_status = 1 and order_return_commodity.order_return_commodity_type = 2
+        and order_return.order_return_date &gt;= activity.activity_start_date and order_return.order_return_date &lt;= activity.activity_end_date
+        and order_return_commodity.commodity_id = activity_sell_limit.commodity_id) as return_add_num
+        from activity_sell_limit
+        left join commodity on activity_sell_limit.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join activity on activity_sell_limit.activity_id = activity.activity_id
+        where activity_sell_limit.activity_id = #{activity_id}
+    </select>
+
+    <select id="getActivitySellLimit" resultType="com.xinshan.model.ActivitySellLimit">
+        select * from activity_sell_limit where activity_id = #{param1} and commodity_id = #{param2}
+    </select>
+
+    <resultMap id="activityCommodityReportsResultMap" type="com.xinshan.model.extend.activity.ActivityCommodityExtend"
+               extends="com.xinshan.dao.ActivityCommodityMapper.BaseResultMap">
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="activityDetail" javaType="com.xinshan.model.ActivityDetail">
+            <result column="all" property="all"/>
+            <result column="activity_type1" property="activity_type"/>
+            <result column="activity_discount" property="activity_discount"/>
+        </association>
+    </resultMap>
+    <select id="activityCommodityReports" resultMap="activityCommodityReportsResultMap"
+            parameterType="com.xinshan.pojo.activity.ActivitySearchOption">
+        select activity_commodity.*,
+        activity.*,
+        commodity.commodity_code,commodity.commodity_name,commodity.sell_price,commodity.purchase_price
+        ,supplier.supplier_name,supplier.contacts,
+        activity_detail.`all` as `all`,activity_detail.activity_type as activity_type1, activity_detail.activity_discount as activity_discount
+        from activity_commodity
+        left JOIN activity on activity_commodity.activity_id = activity.activity_id
+        left JOIN commodity on activity_commodity.commodity_id = commodity.commodity_id
+        left JOIN supplier on supplier.supplier_id = commodity.supplier_id
+        left join activity_detail on activity_commodity.activity_id = activity_detail.activity_id
+        where 1=1
+        <include refid="activityCommodityQuery"/>
+        order by activity_commodity.activity_commodity_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countActivityCommodityReports" resultType="java.lang.Integer" parameterType="com.xinshan.pojo.activity.ActivitySearchOption">
+        select count(DISTINCT activity_commodity.activity_commodity_id) from activity_commodity
+        left JOIN activity on activity_commodity.activity_id = activity.activity_id
+        left JOIN commodity on activity_commodity.commodity_id = commodity.commodity_id
+        left JOIN supplier on supplier.supplier_id = commodity.supplier_id
+        left join activity_detail on activity_commodity.activity_id = activity_detail.activity_id
+        where 1=1
+        <include refid="activityCommodityQuery"/>
+    </select>
+    <sql id="activityCommodityQuery">
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%"
+            OR activity.activity_name like "%"#{param}"%")
+        </if>
+        <if test="supplier_id != null">
+            and commodity.supplier_id = #{supplier_id}
+        </if>
+        <if test="activity_id != null">
+            and activity_commodity.activity_id = #{activity_id}
+        </if>
+        <if test="activity_commodity_status != null">
+            and activity_commodity.activity_commodity_status = #{activity_commodity_status}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= activity.activity_end_date and activity.activity_end_date &lt; #{endDate})
+        </if>
+    </sql>
+</mapper>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.specialRightSell.SpecialRightSellExtendMapper">
+    <insert id="createSpecialRightSell" parameterType="com.xinshan.model.SpecialRightSell" keyProperty="special_right_sell_id" useGeneratedKeys="true">
+        insert into special_right_sell (special_right_sell_id, activity_id,
+          activity_special_right_commodity_id, special_right_sell_status,
+          special_right_commodity_num, pay_amount,
+          order_id, sell_create_employee_code, sell_create_employee_name,
+          sell_create_date, order_pay_ids,
+          special_right_sell_remark)
+        values (#{special_right_sell_id,jdbcType=INTEGER}, #{activity_id,jdbcType=INTEGER},
+          #{activity_special_right_commodity_id,jdbcType=INTEGER}, #{special_right_sell_status,jdbcType=INTEGER},
+          #{special_right_commodity_num,jdbcType=INTEGER}, #{pay_amount,jdbcType=DECIMAL},
+          #{order_id,jdbcType=INTEGER}, #{sell_create_employee_code,jdbcType=VARCHAR}, #{sell_create_employee_name,jdbcType=VARCHAR},
+          #{sell_create_date,jdbcType=TIMESTAMP}, #{order_pay_ids,jdbcType=LONGVARCHAR},
+          #{special_right_sell_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <resultMap id="specialRightSellResultMap" type="com.xinshan.model.extend.specialRightSell.SpecialRightSellExtend"
+               extends="com.xinshan.dao.SpecialRightSellMapper.BaseResultMap">
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier"
+                     resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="activitySpecialRightCommodity" javaType="com.xinshan.model.ActivitySpecialRightCommodity"
+                     resultMap="com.xinshan.dao.ActivitySpecialRightCommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="specialRightSells" parameterType="com.xinshan.pojo.specialRightSell.SpecialRightSellSearchOption" resultMap="specialRightSellResultMap">
+        select
+        special_right_sell.*,
+        `order`.order_code,`order`.customer_name,`order`.customer_phone_number,
+        activity.activity_id, activity.activity_name,
+        commodity.commodity_id,commodity.commodity_name,commodity.commodity_code,
+        supplier.supplier_name,
+        activity_special_right_commodity.special_right_price
+        from special_right_sell
+        left join `order` on special_right_sell.order_id = `order`.order_id
+        left join activity on special_right_sell.activity_id = activity.activity_id
+        left join activity_special_right_commodity on activity_special_right_commodity.activity_special_right_commodity_id = special_right_sell.activity_special_right_commodity_id
+        left join commodity on activity_special_right_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="special_right_sell_id != null">
+            and special_right_sell.special_right_sell_id = #{special_right_sell_id}
+        </if>
+        <if test="commodity_id != null">
+            and activity_special_right_commodity.commodity_id = #{commodity_id}
+        </if>
+        <if test="order_id != null">
+            and special_right_sell.order_id = #{order_id}
+        </if>
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        order by special_right_sell.special_right_sell_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <select id="countSpecialRightSell" parameterType="com.xinshan.pojo.specialRightSell.SpecialRightSellSearchOption" resultType="java.lang.Integer">
+        select
+        count(DISTINCT special_right_sell.special_right_sell_id)
+        from special_right_sell
+        left join `order` on special_right_sell.order_id = `order`.order_id
+        left join activity on special_right_sell.activity_id = activity.activity_id
+        left join activity_special_right_commodity on activity_special_right_commodity.activity_special_right_commodity_id = special_right_sell.activity_special_right_commodity_id
+        left join commodity on activity_special_right_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="special_right_sell_id != null">
+            and special_right_sell.special_right_sell_id = #{special_right_sell_id}
+        </if>
+        <if test="commodity_id != null">
+            and activity_special_right_commodity.commodity_id = #{commodity_id}
+        </if>
+        <if test="order_id != null">
+            and special_right_sell.order_id = #{order_id}
+        </if>
+        <if test="param != null">
+            and (`order`.customer_name like "%"#{param}"%"
+            or `order`.customer_phone_number like "%"#{param}"%"
+            or `order`.order_code like "%"#{param}"%"
+            or commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.pay.PayExtendMapper">
+
+    <insert id="createPayReturn" parameterType="com.xinshan.model.OrderPayReturn" useGeneratedKeys="true" keyProperty="order_pay_return_id">
+        insert into order_pay_return (order_pay_return_id, return_amount,
+          return_employee_code, return_employee_name,
+          return_create_date, order_pay_return_type,
+          order_pay_return_source, pay_return_remark
+          )
+        values (#{order_pay_return_id,jdbcType=INTEGER}, #{return_amount,jdbcType=DECIMAL},
+          #{return_employee_code,jdbcType=VARCHAR}, #{return_employee_name,jdbcType=VARCHAR},
+          #{return_create_date,jdbcType=TIMESTAMP}, #{order_pay_return_type,jdbcType=INTEGER},
+          #{order_pay_return_source,jdbcType=INTEGER}, #{pay_return_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <insert id="createOrderPay" parameterType="com.xinshan.model.OrderPay" useGeneratedKeys="true" keyProperty="order_pay_id">
+        insert into order_pay (order_pay_id, order_id, need_amount,
+          pay_amount, pay_date, cashier_employee_code,
+          cashier_employee_name, pay_source, position_id,
+          order_return_id, order_pay_type, pay_return,
+          daogou_position_id, daogou_employee_code,
+          daogou_employee_name, order_pay_remark
+          )
+        values (#{order_pay_id,jdbcType=INTEGER}, #{order_id,jdbcType=INTEGER}, #{need_amount,jdbcType=DECIMAL},
+          #{pay_amount,jdbcType=DECIMAL}, #{pay_date,jdbcType=TIMESTAMP}, #{cashier_employee_code,jdbcType=VARCHAR},
+          #{cashier_employee_name,jdbcType=VARCHAR}, #{pay_source,jdbcType=INTEGER}, #{position_id,jdbcType=INTEGER},
+          #{order_return_id,jdbcType=INTEGER}, #{order_pay_type,jdbcType=INTEGER}, #{pay_return,jdbcType=INTEGER},
+          #{daogou_position_id,jdbcType=INTEGER}, #{daogou_employee_code,jdbcType=VARCHAR},
+          #{daogou_employee_name,jdbcType=VARCHAR}, #{order_pay_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <select id="orderPays" parameterType="com.xinshan.pojo.pay.PaySearchOption" resultType="com.xinshan.model.OrderPay">
+        select * from order_pay
+        where
+        1=1
+        <if test="orderPayIds != null">
+            and order_pay_id in
+            <foreach item="item" index="index" collection="orderPayIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="order_id != null">
+            and order_id = #{order_id}
+        </if>
+        <if test="order_return_id != null">
+            and order_return_id = #{order_return_id}
+        </if>
+    </select>
+
+    <select id="orderPayReturns" parameterType="com.xinshan.pojo.pay.PaySearchOption" resultType="com.xinshan.model.OrderPayReturn">
+        select * from order_pay_return
+        where
+        1=1
+        <if test="orderPayReturnIds != null">
+            and order_pay_return_id in
+            <foreach item="item" index="index" collection="orderPayReturnIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+</mapper>

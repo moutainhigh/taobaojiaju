@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.user.UserBringUpExtendMapper">
+    <insert id="createBringUp" parameterType="com.xinshan.model.UserBringUp" useGeneratedKeys="true" keyProperty="user_bring_up_id">
+        insert into user_bring_up (user_bring_up_id, old_user_id, new_user_id,
+          user_bring_up_create_date, user_bring_up_create_employee_code,
+          user_bring_up_create_employee_name, user_bring_up_date,
+          order_id, order_complete_date, user_bring_up_status
+          )
+        values (#{user_bring_up_id,jdbcType=INTEGER}, #{old_user_id,jdbcType=INTEGER}, #{new_user_id,jdbcType=INTEGER},
+          #{user_bring_up_create_date,jdbcType=TIMESTAMP}, #{user_bring_up_create_employee_code,jdbcType=VARCHAR},
+          #{user_bring_up_create_employee_name,jdbcType=VARCHAR}, #{user_bring_up_date,jdbcType=TIMESTAMP},
+          #{order_id,jdbcType=INTEGER}, #{order_complete_date,jdbcType=TIMESTAMP}, #{user_bring_up_status,jdbcType=INTEGER}
+          )
+    </insert>
+    <insert id="createBringUpCashBack" parameterType="com.xinshan.model.UserBringUpCashBack" useGeneratedKeys="true" keyProperty="bring_up_cash_back_id">
+        insert into user_bring_up_cash_back (bring_up_cash_back_id, user_bring_up_id,
+          user_bring_up_type, user_bring_up_cash,
+          user_bring_up_tihuoquan, user_bring_up_gift,
+          user_bring_up_cash_back_date, user_bring_up_remark
+          )
+        values (#{bring_up_cash_back_id,jdbcType=INTEGER}, #{user_bring_up_id,jdbcType=INTEGER},
+          #{user_bring_up_type,jdbcType=INTEGER}, #{user_bring_up_cash,jdbcType=DECIMAL},
+          #{user_bring_up_tihuoquan,jdbcType=DECIMAL}, #{user_bring_up_gift,jdbcType=VARCHAR},
+          #{user_bring_up_cash_back_date,jdbcType=TIMESTAMP}, #{user_bring_up_remark,jdbcType=LONGVARCHAR}
+          )
+    </insert>
+
+    <select id="bringUpIds" parameterType="com.xinshan.pojo.user.UserSearchOption" resultType="java.lang.Integer">
+        <include refid="newUserBringUpIdsSql"/>
+        union
+        <include refid="oldUserBringUpIdsSql"/>
+    </select>
+    <sql id="oldUserBringUpIdsSql">
+        select DISTINCT user_bring_up.user_bring_up_id from user_bring_up
+        left join `user` on `user`.user_id = user_bring_up.old_user_id
+        left join `order` on user_bring_up.order_id = `order`.order_id
+        where 1=1
+        <include refid="bringUpQuery"/>
+    </sql>
+    <sql id="newUserBringUpIdsSql">
+        select DISTINCT user_bring_up.user_bring_up_id from user_bring_up
+        left join `user` on `user`.user_id = user_bring_up.new_user_id
+        left join `order` on user_bring_up.order_id = `order`.order_id
+        where 1=1
+        <include refid="bringUpQuery"/>
+    </sql>
+
+    <sql id="bringUpQuery">
+        <if test="param != null">
+            and (`user`.user_name like "%"#{param}"%" or `user`.user_phone like "%"#{param}"%")
+        </if>
+        <if test="user_bring_up_status != null">
+            and find_in_set(user_bring_up.user_bring_up_status, #{user_bring_up_status})
+        </if>
+    </sql>
+
+    <select id="oldUserBringUpIds" parameterType="com.xinshan.pojo.user.UserSearchOption" resultType="java.lang.Integer">
+        <include refid="oldUserBringUpIdsSql"/>
+    </select>
+    <select id="newUserBringUpIds" parameterType="com.xinshan.pojo.user.UserSearchOption" resultType="java.lang.Integer">
+        <include refid="newUserBringUpIdsSql"/>
+    </select>
+
+    <resultMap id="bringUpResultMap" type="com.xinshan.model.extend.user.UserBringUpExtend"
+               extends="com.xinshan.dao.UserBringUpMapper.BaseResultMap">
+        <association property="oldUser" javaType="com.xinshan.model.User"
+                     resultMap="com.xinshan.dao.UserMapper.BaseResultMap"/>
+        <association property="order" javaType="com.xinshan.model.Order"
+                     resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="bringUpCashBack" javaType="com.xinshan.model.UserBringUpCashBack"
+                     resultMap="com.xinshan.dao.UserBringUpCashBackMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="bringUpList" parameterType="com.xinshan.pojo.user.UserSearchOption" resultMap="bringUpResultMap">
+        select *
+        from user_bring_up
+        left join `user` on `user`.user_id = user_bring_up.old_user_id
+        left join `order` on user_bring_up.order_id = `order`.order_id
+        left join user_bring_up_cash_back on user_bring_up.user_bring_up_id = user_bring_up_cash_back.user_bring_up_id
+        where 1=1
+        <if test="bringUpIds != null">
+            and user_bring_up.user_bring_up_id in
+            <foreach item="item" index="index" collection="bringUpIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by user_bring_up.user_bring_up_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <insert id="createBringUpSetting" parameterType="com.xinshan.model.UserBringUpSetting" useGeneratedKeys="true" keyProperty="user_bring_up_setting_id">
+        insert into user_bring_up_setting (user_bring_up_setting_id, cash_back_day,
+          remind_day, cash_back_per, setting_enable,
+          setting_create_date, setting_create_employee_code,
+          setting_create_employee_name, setting_invalid_date
+          )
+        values (#{user_bring_up_setting_id,jdbcType=INTEGER}, #{cash_back_day,jdbcType=INTEGER},
+          #{remind_day,jdbcType=INTEGER}, #{cash_back_per,jdbcType=INTEGER}, #{setting_enable,jdbcType=INTEGER},
+          #{setting_create_date,jdbcType=TIMESTAMP}, #{setting_create_employee_code,jdbcType=VARCHAR},
+          #{setting_create_employee_name,jdbcType=VARCHAR}, #{setting_invalid_date,jdbcType=TIMESTAMP}
+          )
+    </insert>
+
+    <select id="bringUpSetting" resultType="com.xinshan.model.UserBringUpSetting">
+        select * from user_bring_up_setting where setting_enable = 1
+    </select>
+
+    <update id="invalidBringUpSetting">
+        update user_bring_up_setting set setting_enable = 0, setting_invalid_date = now()
+    </update>
+
+    <select id="getBringUpByOrderId" resultType="com.xinshan.model.UserBringUp" parameterType="java.lang.Integer">
+        select * from user_bring_up where order_id = #{order_id}
+    </select>
+</mapper>

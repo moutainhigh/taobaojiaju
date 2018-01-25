@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.inventory.InventoryMoveExtendMapper">
+    <insert id="createInventoryMove" parameterType="com.xinshan.model.InventoryMove" useGeneratedKeys="true" keyProperty="inventory_move_id">
+        insert into inventory_move (inventory_move_id, create_date,
+          create_employee_code, create_employee_name,
+          confirm_date, confirm_employee_code,
+          confirm_employee_name, inventory_move_status,
+          inventory_move_remark)
+        values (#{inventory_move_id,jdbcType=INTEGER}, #{create_date,jdbcType=TIMESTAMP},
+          #{create_employee_code,jdbcType=VARCHAR}, #{create_employee_name,jdbcType=VARCHAR},
+          #{confirm_date,jdbcType=TIMESTAMP}, #{confirm_employee_code,jdbcType=VARCHAR},
+          #{confirm_employee_name,jdbcType=VARCHAR}, #{inventory_move_status,jdbcType=INTEGER},
+          #{inventory_move_remark,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createInventoryMoveCommodity" parameterType="com.xinshan.model.InventoryMoveCommodity"
+            useGeneratedKeys="true" keyProperty="inventory_move_commodity_id">
+        insert into inventory_move_commodity (inventory_move_commodity_id, inventory_move_id,
+          commodity_num_id1, commodity_num_id2, inventory_move_num,
+          commodity_id)
+        values (#{inventory_move_commodity_id,jdbcType=INTEGER}, #{inventory_move_id,jdbcType=INTEGER},
+          #{commodity_num_id1,jdbcType=INTEGER}, #{commodity_num_id2,jdbcType=INTEGER}, #{inventory_move_num,jdbcType=INTEGER},
+          #{commodity_id,jdbcType=INTEGER})
+    </insert>
+
+    <select id="inventoryMoveIds" parameterType="com.xinshan.pojo.inventory.InventorySearchOption" resultType="java.lang.Integer">
+        select DISTINCT inventory_move.inventory_move_id from inventory_move
+        left join inventory_move_commodity on inventory_move.inventory_move_id = inventory_move_commodity.inventory_move_id
+        left join commodity on inventory_move_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="inventory_move_id != null">
+            and inventory_move.inventory_move_id = #{inventory_move_id}
+        </if>
+        <if test="create_employee_code != null">
+            and inventory_move.create_employee_code = #{create_employee_code}
+        </if>
+        <if test="confirm_employee_code != null">
+            and inventory_move.confirm_employee_code = #{confirm_employee_code}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= inventory_move.create_date and inventory_move.create_date &lt; #{endDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+        order by inventory_move.create_date desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <resultMap id="inventoryMoveResultMap" type="com.xinshan.model.extend.inventory.InventoryMoveExtend"
+               extends="com.xinshan.dao.InventoryMoveMapper.BaseResultMap">
+        <collection property="inventoryMoveCommodityExtends" ofType="com.xinshan.model.extend.inventory.InventoryMoveCommodityExtend">
+            <id column="inventory_move_commodity_id" jdbcType="INTEGER" property="inventory_move_commodity_id" />
+            <result column="inventory_move_id" jdbcType="INTEGER" property="inventory_move_id" />
+            <result column="commodity_num_id1" jdbcType="INTEGER" property="commodity_num_id1" />
+            <result column="commodity_num_id2" jdbcType="INTEGER" property="commodity_num_id2" />
+            <result column="inventory_move_num" jdbcType="INTEGER" property="inventory_move_num" />
+            <result column="commodity_id" jdbcType="INTEGER" property="commodity_id" />
+        </collection>
+    </resultMap>
+    <select id="inventoryMove" parameterType="com.xinshan.pojo.inventory.InventorySearchOption" resultMap="inventoryMoveResultMap">
+        select * from inventory_move
+        left join inventory_move_commodity on inventory_move.inventory_move_id = inventory_move_commodity.inventory_move_id
+        where 1=1
+        <if test="inventory_move_id != null">
+            and inventory_move.inventory_move_id = #{inventory_move_id}
+        </if>
+    </select>
+
+    <select id="countInventoryMove" parameterType="com.xinshan.pojo.inventory.InventorySearchOption" resultType="java.lang.Integer">
+        select count(DISTINCT inventory_move.inventory_move_id) from inventory_move
+        left join inventory_move_commodity on inventory_move.inventory_move_id = inventory_move_commodity.inventory_move_id
+        left join commodity on inventory_move_commodity.commodity_id = commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        where 1=1
+        <if test="inventory_move_id != null">
+            and inventory_move.inventory_move_id = #{inventory_move_id}
+        </if>
+        <if test="create_employee_code != null">
+            and inventory_move.create_employee_code = #{create_employee_code}
+        </if>
+        <if test="confirm_employee_code != null">
+            and inventory_move.confirm_employee_code = #{confirm_employee_code}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= inventory_move.create_date and inventory_move.create_date &lt; #{endDate})
+        </if>
+        <if test="supplier_id != null">
+            and supplier.supplier_id = #{supplier_id}
+        </if>
+        <if test="param != null">
+            and (commodity.commodity_name like "%"#{param}"%"
+            or commodity.commodity_code like "%"#{param}"%")
+        </if>
+    </select>
+
+    <resultMap id="inventoryMoveResultMap1" type="com.xinshan.model.extend.inventory.InventoryMoveExtend"
+               extends="com.xinshan.dao.InventoryMoveMapper.BaseResultMap">
+        <collection property="inventoryMoveCommodityExtends" ofType="com.xinshan.model.extend.inventory.InventoryMoveCommodityExtend">
+            <id column="inventory_move_commodity_id" jdbcType="INTEGER" property="inventory_move_commodity_id" />
+            <result column="inventory_move_id" jdbcType="INTEGER" property="inventory_move_id" />
+            <result column="commodity_num_id1" jdbcType="INTEGER" property="commodity_num_id1" />
+            <result column="commodity_num_id2" jdbcType="INTEGER" property="commodity_num_id2" />
+            <result column="inventory_move_num" jdbcType="INTEGER" property="inventory_move_num" />
+            <result column="commodity_id" jdbcType="INTEGER" property="commodity_id" />
+            <association property="commodity" javaType="com.xinshan.model.Commodity" resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+            <association property="supplier" javaType="com.xinshan.model.Supplier" resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+            <association property="commodityNum1" javaType="com.xinshan.model.CommodityNum">
+                <result column="commodity_num_id1" property="commodity_num_id" jdbcType="INTEGER"/>
+                <result column="commodity_store_id1" property="commodity_store_id" jdbcType="INTEGER"/>
+                <result column="sample1" property="sample" jdbcType="INTEGER"/>
+                <result column="return_commodity1" property="return_commodity" jdbcType="INTEGER"/>
+            </association>
+            <association property="commodityStore1" javaType="com.xinshan.model.CommodityStore">
+                <result column="store_name1" property="store_name" jdbcType="INTEGER"/>
+            </association>
+            <association property="commodityNum2" javaType="com.xinshan.model.CommodityNum">
+                <result column="commodity_num_id2" property="commodity_num_id" jdbcType="INTEGER"/>
+                <result column="commodity_store_id2" property="commodity_store_id" jdbcType="INTEGER"/>
+                <result column="sample2" property="sample" jdbcType="INTEGER"/>
+                <result column="return_commodity2" property="return_commodity" jdbcType="INTEGER"/>
+            </association>
+            <association property="commodityStore2" javaType="com.xinshan.model.CommodityStore">
+                <result column="store_name2" property="store_name" jdbcType="INTEGER"/>
+            </association>
+        </collection>
+    </resultMap>
+    <select id="inventoryMove1" parameterType="com.xinshan.pojo.inventory.InventorySearchOption" resultMap="inventoryMoveResultMap1">
+        select inventory_move.*,
+        inventory_move_commodity.*,
+        commodity.commodity_code,commodity.commodity_name,commodity.commodity_id,commodity.sell_price,
+        supplier.supplier_id,supplier.supplier_name,supplier.contacts,
+        cn1.commodity_num_id as commodity_num_id1,cn1.commodity_store_id as commodity_store_id1,cn1.sample as sample1,cn1.return_commodity as return_commodity1,
+        cs1.store_name as store_name1,
+        cn1.commodity_num_id as commodity_num_id2,cn2.commodity_store_id as commodity_store_id2,cn2.sample as sample2,cn2.return_commodity as return_commodity2,
+        cs2.store_name as store_name2
+        from inventory_move
+        left join inventory_move_commodity on inventory_move.inventory_move_id = inventory_move_commodity.inventory_move_id
+        left join commodity on commodity.commodity_id = inventory_move_commodity.commodity_id
+        left join supplier on commodity.supplier_id = supplier.supplier_id
+        left join commodity_num cn1 on cn1.commodity_num_id = inventory_move_commodity.commodity_num_id1
+        left join commodity_store cs1 on cn1.commodity_store_id = cs1.commodity_store_id
+        left join commodity_num cn2 on cn2.commodity_num_id = inventory_move_commodity.commodity_num_id2
+        left join commodity_store cs2 on cn2.commodity_store_id = cs2.commodity_store_id
+        where 1=1
+        <if test="inventoryMoveIds != null">
+            and inventory_move.inventory_move_id in
+            <foreach item="item" index="index" collection="inventoryMoveIds"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by inventory_move.create_date desc
+    </select>
+</mapper>

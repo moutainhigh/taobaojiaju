@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinshan.dao.extend.settlement.SettlementExtendMapper">
+
+    <insert id="createSettlement" parameterType="com.xinshan.model.Settlement" useGeneratedKeys="true" keyProperty="settlement_id">
+        insert into settlement (settlement_id, supplier_id, order_id,
+          settlement_status, inventory_history_id,
+          after_sales_id, settlement_need_amount,
+          settlement_paid_amount, settlement_amount,
+          settlement_purchase_amount, settlement_after_sales_amount,
+          checking_status, settlement_type, settlement_return_commodity_amount,
+          verify_status, obj_id_type, obj_id,
+          verify_date, verify_employee_code, verify_employee_name,
+          order_fee_ids, order_pay_ids)
+        values (#{settlement_id,jdbcType=INTEGER}, #{supplier_id,jdbcType=INTEGER}, #{order_id,jdbcType=INTEGER},
+          #{settlement_status,jdbcType=INTEGER}, #{inventory_history_id,jdbcType=INTEGER},
+          #{after_sales_id,jdbcType=INTEGER}, #{settlement_need_amount,jdbcType=DECIMAL},
+          #{settlement_paid_amount,jdbcType=DECIMAL}, #{settlement_amount,jdbcType=DECIMAL},
+          #{settlement_purchase_amount,jdbcType=DECIMAL}, #{settlement_after_sales_amount,jdbcType=DECIMAL},
+          #{checking_status,jdbcType=INTEGER}, #{settlement_type,jdbcType=INTEGER}, #{settlement_return_commodity_amount,jdbcType=DECIMAL},
+          #{verify_status,jdbcType=INTEGER}, #{obj_id_type,jdbcType=INTEGER}, #{obj_id,jdbcType=INTEGER},
+          #{verify_date,jdbcType=TIMESTAMP}, #{verify_employee_code,jdbcType=VARCHAR}, #{verify_employee_name,jdbcType=VARCHAR},
+          #{order_fee_ids,jdbcType=LONGVARCHAR}, #{order_pay_ids,jdbcType=LONGVARCHAR})
+    </insert>
+    <insert id="createSettlementHistory" parameterType="com.xinshan.model.SettlementHistory" useGeneratedKeys="true" keyProperty="settlement_history_id">
+        insert into settlement_history (settlement_history_id, settlement_id,
+          settlement_history_amount, settlement_employee_code,
+          settlement_employee_name, settlement_date,
+          settlement_remark)
+        values (#{settlement_history_id,jdbcType=INTEGER}, #{settlement_id,jdbcType=INTEGER},
+          #{settlement_history_amount,jdbcType=DECIMAL}, #{settlement_employee_code,jdbcType=VARCHAR},
+          #{settlement_employee_name,jdbcType=VARCHAR}, #{settlement_date,jdbcType=TIMESTAMP},
+          #{settlement_remark,jdbcType=LONGVARCHAR})
+    </insert>
+
+    <insert id="createSettlementCommodityPurchase" parameterType="com.xinshan.model.SettlementCommodityPurchase"
+            useGeneratedKeys="true" keyProperty="settlement_commodity_purchase_id">
+        insert into settlement_commodity_purchase (settlement_commodity_purchase_id, settlement_id,
+          obj_id, purchase_price, settlement_commodity_purchase_employee_code,
+          settlement_commodity_purchase_employee_name)
+        values (#{settlement_commodity_purchase_id,jdbcType=INTEGER}, #{settlement_id,jdbcType=INTEGER},
+          #{obj_id,jdbcType=INTEGER}, #{purchase_price,jdbcType=DECIMAL}, #{settlement_commodity_purchase_employee_code,jdbcType=VARCHAR},
+          #{settlement_commodity_purchase_employee_name,jdbcType=VARCHAR})
+    </insert>
+
+    <resultMap id="settlementResult" type="com.xinshan.model.extend.settlement.SettlementExtend"
+               extends="com.xinshan.dao.SettlementMapper.BaseResultMap">
+        <association property="order" javaType="com.xinshan.model.Order" resultMap="com.xinshan.dao.OrderMapper.BaseResultMap"/>
+        <association property="supplier" javaType="com.xinshan.model.Supplier" resultMap="com.xinshan.dao.SupplierMapper.BaseResultMap"/>
+        <association property="inventoryOut" javaType="com.xinshan.model.InventoryOut">
+            <result column="inventory_out_code" jdbcType="VARCHAR" property="inventory_out_code" />
+            <result column="inventory_out_create_date" jdbcType="TIMESTAMP" property="inventory_out_create_date" />
+            <result column="record_employee_code" jdbcType="VARCHAR" property="record_employee_code" />
+            <result column="record_employee_name" jdbcType="VARCHAR" property="record_employee_name" />
+        </association>
+        <association property="inventoryHistory" javaType="com.xinshan.model.InventoryHistory"
+                     resultMap="com.xinshan.dao.InventoryHistoryMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="settlementList" parameterType="com.xinshan.pojo.settlement.SettlementSearchOption" resultMap="settlementResult">
+        select
+        settlement.*,
+        `order`.order_code,`order`.order_paper_code,`order`.order_date,`order`.customer_name,`order`.customer_phone_number,
+        supplier.supplier_name,supplier.contacts,
+        inventory_history.inventory_date, inventory_history.inventory_history_code,inventory_history.gift_id,
+        inventory_out.*
+        from settlement
+        left join `order` on `order`.order_id = settlement.order_id
+        left join supplier on supplier.supplier_id = settlement.supplier_id
+        left join inventory_history on settlement.inventory_history_id = inventory_history.inventory_history_id
+        left join inventory_out on inventory_history.inventory_out_id = inventory_out.inventory_out_id
+        left join gift on inventory_history.gift_id = gift.gift_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.order_code like "%"#{param}"%" OR
+            `order`.order_paper_code like "%"#{param}"%" OR
+            `inventory_history`.inventory_history_code like "%"#{param}"%" OR
+            `order`.customer_name like "%"#{param}"%" or
+            gift.gift_code like "%"#{param}"%" or
+            (select g.gift_code from gift g where settlement.obj_id = g.gift_id and settlement.obj_id_type = 5) like "%"#{param}"%"
+            )
+        </if>
+        <if test="settlement_id != null">
+            and settlement.settlement_id = #{settlement_id}
+        </if>
+        <if test="order_id != null">
+            and settlement.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.order_date and `order`.order_date &lt; #{endDate})
+        </if>
+        <if test="supplier_id != null">
+            and settlement.supplier_id = #{supplier_id}
+        </if>
+        <if test="settlement_status != null">
+            and settlement.settlement_status = #{settlement_status}
+        </if>
+        <if test="inventory_history_id != null">
+            and settlement.inventory_history_id = #{inventory_history_id}
+        </if>
+        <if test="after_sales_id != null">
+            and settlement.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="checking_status != null">
+            and settlement.checking_status = #{checking_status}
+        </if>
+        <if test="settlementIdList != null">
+            and settlement.settlement_id in
+            <foreach item="item" index="index" collection="settlementIdList"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="settlement_type != null">
+            and settlement.settlement_type = #{settlement_type}
+        </if>
+        <if test="contacts != null">
+            and supplier.contacts = #{contacts}
+        </if>
+        <if test="verify_status != null">
+            and settlement.verify_status = #{verify_status}
+        </if>
+        order by settlement.settlement_id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <select id="countSettlement" parameterType="com.xinshan.pojo.settlement.SettlementSearchOption" resultType="java.lang.Integer">
+        select count(*) from settlement
+        left join `order` on `order`.order_id = settlement.order_id
+        left join supplier on supplier.supplier_id = settlement.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.order_code like "%"#{param}"%" OR
+            `order`.order_paper_code like "%"#{param}"%" OR
+            `order`.customer_name like "%"#{param}"%")
+        </if>
+        <if test="settlement_id != null">
+            and settlement.settlement_id = #{settlement_id}
+        </if>
+        <if test="order_id != null">
+            and settlement.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.order_date and `order`.order_date &lt; #{endDate})
+        </if>
+        <if test="supplier_id != null">
+            and settlement.supplier_id = #{supplier_id}
+        </if>
+        <if test="settlement_status != null">
+            and settlement.settlement_status = #{settlement_status}
+        </if>
+        <if test="inventory_history_id != null">
+            and settlement.inventory_history_id = #{inventory_history_id}
+        </if>
+        <if test="after_sales_id != null">
+            and settlement.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="checking_status != null">
+            and settlement.checking_status = #{checking_status}
+        </if>
+        <if test="settlementIdList != null">
+            and settlement.settlement_id in
+            <foreach item="item" index="index" collection="settlementIdList"  open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="settlement_type != null">
+            and settlement.settlement_type = #{settlement_type}
+        </if>
+        <if test="contacts != null">
+            and supplier.contacts = #{contacts}
+        </if>
+        <if test="verify_status != null">
+            and settlement.verify_status = #{verify_status}
+        </if>
+    </select>
+
+    <resultMap id="settlementCommodityResultMap" type="com.xinshan.model.extend.settlement.SettlementInventoryOutCommodity"
+               extends="com.xinshan.dao.InventoryHistoryDetailMapper.BaseResultMap">
+        <association property="orderCommodity" javaType="com.xinshan.model.OrderCommodity"
+                     resultMap="com.xinshan.dao.OrderCommodityMapper.BaseResultMap"/>
+        <association property="commodity" javaType="com.xinshan.model.Commodity"
+                     resultMap="com.xinshan.dao.CommodityMapper.BaseResultMap"/>
+        <association property="purchaseCommodity" javaType="com.xinshan.model.PurchaseCommodity"
+                     resultMap="com.xinshan.dao.PurchaseCommodityMapper.BaseResultMap"/>
+        <association property="activityCommodity" javaType="com.xinshan.model.ActivityCommodity"
+                     resultMap="com.xinshan.dao.ActivityCommodityMapper.BaseResultMap"/>
+        <association property="activity" javaType="com.xinshan.model.Activity"
+                     resultMap="com.xinshan.dao.ActivityMapper.BaseResultMap"/>
+        <association property="inventoryInCommodity" javaType="com.xinshan.model.InventoryInCommodity"
+                     resultMap="com.xinshan.dao.InventoryInCommodityMapper.BaseResultMap"/>
+        <association property="giftCommodity" javaType="com.xinshan.model.GiftCommodity"
+                     resultMap="com.xinshan.dao.GiftCommodityMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="settlementCommodities" parameterType="com.xinshan.pojo.settlement.SettlementSearchOption" resultMap="settlementCommodityResultMap">
+        select * from inventory_history_detail
+        left join inventory_out_commodity on inventory_out_commodity.inventory_out_commodity_id = inventory_history_detail.inventory_out_commodity_id
+        left join order_commodity on order_commodity.order_commodity_id = inventory_out_commodity.order_commodity_id
+        left join purchase_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join commodity on inventory_history_detail.commodity_id = commodity.commodity_id
+        left join activity_commodity on order_commodity.activity_commodity_id = activity_commodity.activity_commodity_id
+        left join activity on activity_commodity.activity_id = activity.activity_id
+        where
+        inventory_history_detail.inventory_history_id = #{inventory_history_id}
+        and commodity.supplier_id = #{supplier_id}
+    </select>
+
+    <select id="settlementCommodities1" parameterType="com.xinshan.pojo.settlement.SettlementSearchOption" resultMap="settlementCommodityResultMap">
+        select * from inventory_history_detail
+        left join inventory_in_commodity on inventory_in_commodity.inventory_in_commodity_id = inventory_history_detail.inventory_in_commodity_id
+        left join purchase_commodity on inventory_in_commodity.purchase_commodity_id = purchase_commodity.purchase_commodity_id
+        left join order_commodity on order_commodity.order_commodity_id = purchase_commodity.order_commodity_id
+        left join commodity on order_commodity.commodity_id = commodity.commodity_id
+        left join activity_commodity on order_commodity.activity_commodity_id = activity_commodity.activity_commodity_id
+        left join activity on activity_commodity.activity_id = activity.activity_id
+        where
+        inventory_history_detail.inventory_history_id = #{inventory_history_id}
+        and commodity.supplier_id = #{supplier_id}
+        and commodity.guangdong = #{guangdong}
+    </select>
+
+    <select id="giftOutSettlementCommodities" parameterType="com.xinshan.pojo.settlement.SettlementSearchOption"
+            resultMap="settlementCommodityResultMap">
+        select * from inventory_history_detail
+        left join inventory_out_commodity on inventory_out_commodity.inventory_out_commodity_id = inventory_history_detail.inventory_out_commodity_id
+        left join gift_commodity on gift_commodity.gift_commodity_id = inventory_out_commodity.gift_commodity_id
+        left join purchase_commodity on gift_commodity.gift_commodity_id = purchase_commodity.gift_commodity_id
+        left join commodity on inventory_history_detail.commodity_id = commodity.commodity_id
+        where
+        inventory_history_detail.inventory_history_id = #{inventory_history_id}
+        and commodity.supplier_id = #{supplier_id}
+    </select>
+
+    <resultMap id="orderFeeResultMap" type="com.xinshan.model.extend.orderFee.OrderFeeExtend"
+               extends="com.xinshan.dao.OrderFeeMapper.BaseResultMap">
+        <association property="orderFeeType" javaType="com.xinshan.model.OrderFeeType"
+                     resultMap="com.xinshan.dao.OrderFeeTypeMapper.BaseResultMap"/>
+    </resultMap>
+    <select id="orderFees" parameterType="com.xinshan.pojo.settlement.SettlementSearchOption" resultMap="orderFeeResultMap">
+        select * from order_fee
+        left join order_fee_type on order_fee.order_fee_type_id = order_fee_type.order_fee_type_id
+        where 1=1
+        <if test="after_sales_id != null">
+            and order_fee.after_sales_id = #{after_sales_id}
+        </if>
+        <if test="inventory_history_id != null">
+            and order_fee.inventory_history_id = #{inventory_history_id}
+        </if>
+        <if test="supplier_id != null">
+            and order_fee.supplier_id = #{supplier_id}
+        </if>
+    </select>
+
+    <select id="settlementHistories" resultType="com.xinshan.model.SettlementHistory" parameterType="java.lang.Integer">
+        select * from settlement_history where settlement_id = #{settlement_id}
+    </select>
+
+    <select id="settlementStatistics" parameterType="com.xinshan.pojo.settlement.SettlementSearchOption" resultType="java.util.Map">
+        select
+        sum(settlement.settlement_need_amount) as settlement_need_amount,
+        sum(settlement.settlement_paid_amount) as settlement_paid_amount,
+        sum(settlement.settlement_amount) as settlement_amount,
+        sum(settlement.settlement_purchase_amount) as settlement_purchase_amount,
+        sum(settlement.settlement_after_sales_amount) as settlement_after_sales_amount
+        from settlement
+        left join `order` on `order`.order_id = settlement.order_id
+        left join supplier on supplier.supplier_id = settlement.supplier_id
+        where 1=1
+        <if test="param != null">
+            and (`order`.order_code like "%"#{param}"%")
+        </if>
+        <if test="settlement_id != null">
+            and settlement.settlement_id = #{settlement_id}
+        </if>
+        <if test="order_id != null">
+            and settlement.order_id = #{order_id}
+        </if>
+        <if test="startDate != null and endDate != null">
+            and (#{startDate} &lt;= `order`.order_date and `order`.order_date &lt; #{endDate})
+        </if>
+        <if test="supplier_id != null">
+            and settlement.supplier_id = #{supplier_id}
+        </if>
+        <if test="settlement_status != null">
+            and settlement.settlement_status = #{settlement_status}
+        </if>
+        <if test="inventory_history_id != null">
+            and settlement.inventory_history_id = #{inventory_history_id}
+        </if>
+        <if test="after_sales_id != null">
+            and settlement.after_sales_id = #{after_sales_id}
+        </if>
+    </select>
+
+    <update id="updateSettlementCheckingStatus" parameterType="com.xinshan.model.Settlement">
+        update settlement
+        set checking_status = #{checking_status,jdbcType=INTEGER}
+        where settlement_id = #{settlement_id,jdbcType=INTEGER}
+    </update>
+    <update id="updateSettlementVerifyStatus" parameterType="com.xinshan.model.Settlement">
+        update settlement
+        set verify_status = #{verify_status,jdbcType=INTEGER},
+        verify_date = #{verify_date,jdbcType=TIMESTAMP},
+        verify_employee_code = #{verify_employee_code,jdbcType=VARCHAR},
+        verify_employee_name = #{verify_employee_name,jdbcType=VARCHAR}
+        where settlement_id = #{settlement_id,jdbcType=INTEGER}
+    </update>
+
+    <select id="getSettlementCommodityPurchase" resultType="com.xinshan.model.SettlementCommodityPurchase">
+        select * from settlement_commodity_purchase
+        where settlement_id = #{param1} and obj_id = #{param2}
+    </select>
+</mapper>
